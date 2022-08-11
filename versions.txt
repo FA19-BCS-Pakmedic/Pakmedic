@@ -1,0 +1,5 @@
+node -> v16.16.0
+react-native -> 5.0.1
+react -> 18.0.2 and above
+react-dom -> 18.0.2 and above
+python -> 3.10.6
