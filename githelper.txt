@@ -1,0 +1,13 @@
+intialize repo:
+    ->git clone https://github.com/FA19-BCS-Pakmedic/Pakmedic.git
+    ->git add .
+    ->git commit -m "some text"
+    ->git checkout [your-branch-name] //moeed, haris, ali
+    ->git push -u origin [your-branch-name] //moeed, haris, ali
+
+
+daily working initial commands:
+    -> git pull origin development
+    -> git push -u origin [your-branch-name]
+    
+
