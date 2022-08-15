@@ -1,13 +1,16 @@
-intialize repo:
+intial setup:
     ->git clone https://github.com/FA19-BCS-Pakmedic/Pakmedic.git
     ->git add .
     ->git commit -m "some text"
-    ->git checkout [your-branch-name] //moeed, haris, ali
-    ->git push -u origin [your-branch-name] //moeed, haris, ali
+    ->git checkout [your-remote-branch-name] //moeed, haris, ali
+    ->git pull origin development
+    ->git push -u origin [your-remote-branch-name] //moeed, haris, ali
 
 
 daily working initial commands:
     -> git pull origin development
-    -> git push -u origin [your-branch-name]
+    -> git push -u origin [your-remote-branch-name]
     
-
+after everything is settled:
+    ->git push -u origin [your-remote-branch-name]
+    ->create a pull request and make other two members as reviewers for the pull request
