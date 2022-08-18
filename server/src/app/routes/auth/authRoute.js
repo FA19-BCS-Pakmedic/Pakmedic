@@ -11,7 +11,7 @@ const {
 } = require("../../controllers/auth/authController");
 
 // importing middlewares
-const { checkDuplicateUser } = require("../../middlewares/checkDuplicateUser");
+const { checkDuplicatePatient } = require("../../middlewares");
 
 //initializing router
 const router = express.Router();
@@ -30,7 +30,7 @@ router.post(
   "/signup",
   [
     check("email", "Please enter a valid email").isEmail(),
-    checkDuplicateUser,
+    checkDuplicatePatient,
     check(
       "password",
       "Please enter a password at least 8 character and contain at least one uppercase, one lower case, and one special character."

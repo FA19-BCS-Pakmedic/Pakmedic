@@ -9,6 +9,7 @@ const xss = require("xss-clean");
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
 const cors = require("cors");
+const fileUpload = require("express-fileupload");
 
 // importing utils
 const AppError = require("./app/utils/helpers/appError");
@@ -18,6 +19,7 @@ const globalErrorHandler = require("./app/controllers/errorController");
 
 // importing routers
 const authRoute = require("./app/routes/auth/authRoute");
+const patientRoute = require("./app/routes/api/patientRoutes");
 
 // Start express app
 const app = express();
@@ -63,6 +65,9 @@ app.use(xss());
 // Compress all responses
 app.use(compression());
 
+// file upload middleware
+// app.use(fileUpload());
+
 // Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
@@ -72,6 +77,7 @@ app.use((req, res, next) => {
 
 // Api endpoints
 app.use("/auth", authRoute);
+app.use("/api/v1/patient", patientRoute);
 
 // any irrelavant end point will hit this and throw error
 app.all("*", (req, res, next) => {
