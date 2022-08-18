@@ -1,7 +1,8 @@
 //getting the jwt secret from env file
 
 module.exports = {
-  accesSecret: process.env.ACCESS_TOKEN_SECRET,
+
+  accessSecret: process.env.ACCESS_TOKEN_SECRET,
   refreshSecret: process.env.REFRESH_TOKEN_SECRET,
   expiresIn: process.env.EXPIRES_IN,
 };
