@@ -5,7 +5,9 @@ import FacebookLogin from "react-facebook-login";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
 import { findAllByDisplayValue } from "@testing-library/react";
+
 import { useEffect } from "react";
+
 
 function App() {
   const googleLoginSuccess = async (data) => {
@@ -34,6 +36,7 @@ function App() {
     console.log(response);
   };
 
+
   useEffect(() => {
     const fetchData = async () => {
       const response = await axios.post(
@@ -45,6 +48,7 @@ function App() {
 
     fetchData();
   });
+
 
   return (
     <div className="App">
