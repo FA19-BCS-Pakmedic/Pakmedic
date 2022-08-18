@@ -9,7 +9,7 @@ const xss = require("xss-clean");
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
 const cors = require("cors");
-const fileUpload = require("express-fileupload");
+// const fileUpload = require("express-fileupload");
 
 // importing utils
 const AppError = require("./app/utils/helpers/appError");

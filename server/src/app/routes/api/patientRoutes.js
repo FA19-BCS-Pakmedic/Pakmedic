@@ -11,6 +11,7 @@ const {
   updatePatient,
   getPatient,
   forgotPassword,
+  resetForgottenPassword,
   resetPassword,
 } = require("../../controllers/api/patientController");
 
@@ -21,7 +22,7 @@ const {
   authorizeRole,
 } = require("../../middlewares");
 
-// import constants
+// import utils
 const {
   passwordRegex,
   cnicRegex,
@@ -30,6 +31,14 @@ const {
   dateOfBirthRegex,
 } = require("../../utils/constants/REGEX");
 const ROLES = require("../../utils/constants/ROLES");
+const {
+  invalidEmail,
+  invalidPassword,
+  invalidCnic,
+  invalidStringRegex,
+  invalidPhoneNo,
+  invalidDOB,
+} = require("../../utils/constants/ERRORMESSAGES");
 
 // configuring multer
 const PATH = path.join(__dirname, "../../../public/images");
@@ -52,14 +61,12 @@ router.post(
   "/register",
   [
     upload.single("avatar"),
-    check("email", "Please enter a valid email").isEmail(),
-    check("password", "Please enter a strong password").matches(passwordRegex),
-    check("cnic", "Please enter a valid cnic").matches(cnicRegex),
-    check("name", "Name should only contain alphabets").matches(stringRegex),
-    check("phone", "Please enter a valid phone number").matches(phoneRegex),
-    check("dob", "Please enter a valid date of birth").matches(
-      dateOfBirthRegex
-    ),
+    check("email", invalidEmail).isEmail(),
+    check("password", invalidPassword).matches(passwordRegex),
+    check("cnic", invalidCnic).matches(cnicRegex),
+    check("name", invalidStringRegex).matches(stringRegex),
+    check("phone", invalidPhoneNo).matches(phoneRegex),
+    check("dob", invalidDOB).matches(dateOfBirthRegex),
     checkDuplicatePatient,
   ],
   register
@@ -70,17 +77,25 @@ router.post("/login", login);
 // routes to reset patient's forgotten password
 router.patch(
   "/forgot-password",
-  [check("email", "Please enter a valid email").isEmail()],
+  [check("email", invalidEmail).isEmail()],
   forgotPassword
 );
 router.patch(
-  "/reset-password",
-  [check("password", "Please enter a strong password").matches(passwordRegex)],
-  resetPassword
+  "/reset-forgotten-password",
+  [check("password", invalidPassword).matches(passwordRegex)],
+  resetForgottenPassword
 );
 
 // middlewares to verify users
 router.use(verifyToken);
+
+//route to reset patient's password if the patient is logged in
+router.patch("/reset-password", [
+  check("email", invalidEmail).isEmail(),
+  check("password", invalidPassword).matches(passwordRegex),
+  resetPassword,
+]);
+
 router.use(authorizeRole(ROLES[1]));
 
 // patient routes to get, update users

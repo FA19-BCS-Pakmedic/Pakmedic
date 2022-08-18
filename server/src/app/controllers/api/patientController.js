@@ -96,9 +96,9 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 exports.updatePatient = catchAsync(async (req, res, next) => {
-  id = req.params.id;
+  id = req.decoded.id;
   data = req.body;
-  console.log(req.cookie);
+  // console.log(req.cookie);
   // console.log(id, data);
 
   // const patient = await Patient.findOne({ _id: id });
@@ -132,15 +132,23 @@ exports.getPatient = catchAsync(async (req, res, next) => {
 
 /***********************************PASSWORD RESET FUNCITONALITY ********************************************/
 exports.forgotPassword = catchAsync(async (req, res, next) => {
+  // checking if there are any errors
+  const errors = validationResult(req);
+  if (errors.errors.length > 0) {
+    return next(new AppError(errors.array()[0].msg, 400));
+  }
+
   const { email } = req.body;
   const patient = await Patient.findOne({ email });
   if (!patient) {
     return next(new AppError("No patient found with that email", 404));
   }
-  // create reset token
+  // create reset token and expiry
   const resetPasswordToken =
     crypto.randomBytes(20).toString("hex") + Date.now();
-  const resetPasswordExpiry = Date.now() + 3600000; // 1 hour
+  const resetPasswordExpiry = Date.now() + 600000; // 10 mins
+
+  // updating the patient data by adding token and expiry
   const updatedPatient = await Patient.findOneAndUpdate(
     { email },
     { $set: { resetPasswordToken, resetPasswordExpiry } },
@@ -150,22 +158,56 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   res.status(200).json({
     success: true,
     resetToken: resetPasswordToken,
-    message: "Your token will expire in 1 hour",
+    message: "Your token will expire in 10 minutes",
   });
 });
 
-exports.resetPassword = catchAsync(async (req, res, next) => {
+exports.resetForgottenPassword = catchAsync(async (req, res, next) => {
+  // checking if there are any errors
+  const errors = validationResult(req);
+  if (errors.errors.length > 0) {
+    return next(new AppError(errors.array()[0].msg, 400));
+  }
+
   const { resetPasswordToken, password } = req.body;
   const patient = await Patient.findOne({ resetPasswordToken });
+
+  // checking token validity
   if (!patient) {
     return next(new AppError("Invalid token", 400));
   }
   if (patient.resetPasswordExpiry < Date.now()) {
     return next(new AppError("Token expired", 400));
   }
+
+  // updating password and token fields if the token is valid
   patient.password = bcrypt.hashSync(password, 10);
   patient.resetPasswordToken = undefined;
   patient.resetPasswordExpiry = undefined;
+  await patient.save();
+  res.status(200).json({
+    success: true,
+    message: "Password updated successfully",
+  });
+});
+
+//reset password if the patient is logged in
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // checking if there are any errors
+  const errors = validationResult(req);
+  if (errors.errors.length > 0) {
+    return next(new AppError(errors.array()[0].msg, 400));
+  }
+  const { email, password, newPassword } = req.body;
+
+  const patient = await Patient.findOne({ email });
+  if (!patient) {
+    return next(new AppError("No patient found with that email", 404));
+  }
+  if (!(await matchEncryptions(password, patient.password))) {
+    return next(new AppError("Incorrect password", 400));
+  }
+  patient.password = bcrypt.hashSync(newPassword, 10);
   await patient.save();
   res.status(200).json({
     success: true,

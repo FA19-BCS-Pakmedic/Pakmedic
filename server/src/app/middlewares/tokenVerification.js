@@ -6,6 +6,10 @@ const jwt = require("jsonwebtoken");
 const catchAsync = require("../utils/helpers/catchAsync");
 const AppError = require("../utils/helpers/appError");
 const jwtConfig = require("../utils/configs/jwtConfig");
+const {
+  userDoesNotExist,
+  userNotLoggedIn,
+} = require("../utils/constants/ERRORMESSAGES");
 
 // import constants
 const ROLES = require("../utils/constants/ROLES");
@@ -25,7 +29,6 @@ module.exports = catchAsync(async (req, res, next) => {
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
   }
-  // console.log(token);
   if (!token) {
     return next(
       new AppError("You are not logged in! Please log in to get access.", 401)
@@ -47,7 +50,7 @@ module.exports = catchAsync(async (req, res, next) => {
       : models.admin;
 
   // 3) Check if user still exists
-  const currentUser = await Patient.findById(decoded.id);
+  const currentUser = await Model.findById(decoded.id);
 
   console.log(currentUser);
   if (!currentUser) {
