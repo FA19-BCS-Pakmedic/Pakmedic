@@ -1,19 +1,36 @@
 //npm packages import
 const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
+// const jwt = require("jsonwebtoken");
 const jwt_decode = require("jwt-decode");
-const { promisify } = require("util");
+// const { promisify } = require("util");
 const bcrypt = require("bcrypt");
-const formidable = require("formidable");
+// const formidable = require("formidable");
 const { validationResult } = require("express-validator");
+const fetch = require("node-fetch");
 
 //importing utils
-const catchAsync = require("../../utils/helpers/catchAsync");
-const AppError = require("../../utils/helpers/appError");
-const deleteFile = require("../../utils/helpers/deleteFile");
-const jwtConfig = require("../../utils/configs/jwtConfig");
-const matchEncryptions = require("../../utils/helpers/matchEncryptions");
+const {
+  catchAsync,
+  AppError,
+  matchEncryptions,
+  // deleteFile,
+  createSendToken,
+} = require("../../utils/helpers");
+// const { jwtConf } = require("../../utils/configs/");
 
+const {
+  provideEmailPassword,
+  incorrectEmailPassword,
+  userNotFoundID,
+  userNotFoundEmail,
+  tokenExpiry,
+  invalidToken,
+  tokenExpired,
+  passwordUpdateSuccess,
+  incorrectPassword,
+  userRegistered,
+  userNotRegistered,
+} = require("../../utils/constants/RESPONSEMESSAGES");
 //importing models
 const db = require("../../models");
 const Patient = db.patient;
@@ -21,13 +38,14 @@ const Patient = db.patient;
 // method to sign up patient
 exports.register = catchAsync(async (req, res, next) => {
   req.body.avatar = req.file.filename;
-
+  // console.log("Reaching the controller function");
   // checking if there are any errors
-  const errors = validationResult(req);
-  if (errors.errors.length > 0) {
-    deleteFile(req.file.path);
-    return next(new AppError(errors.array()[0].msg, 400));
-  }
+  // const errors = validationResult(req);
+  // console.log(errors);
+  // if (errors.errors.length > 0) {
+  //   deleteFile(req.file.path);
+  //   return next(new AppError(errors.array()[0].msg, 400));
+  // }
 
   const {
     email,
@@ -67,10 +85,13 @@ exports.register = catchAsync(async (req, res, next) => {
     resetPasswordExpiry,
   });
 
-  await patient.save();
+  const data = await patient.save();
 
   // console.log(req.body);
-  res.status(201).json({ success: true });
+
+  res
+    .status(201)
+    .json({ success: true, message: `Patient ${userRegistered}`, data });
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -80,7 +101,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // Check if email and password exist
   if (!email || !password) {
-    return next(new AppError("Please provide email and password!", 400));
+    return next(new AppError(provideEmailPassword, 400));
   }
   const user = await Patient.findOne({ email }).select("+password");
 
@@ -88,7 +109,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // Check if user exists && password is correct
   if (!user || !(await matchEncryptions(password, user.password))) {
-    return next(new AppError("Incorrect email or password", 401));
+    return next(new AppError(incorrectEmailPassword, 401));
   }
 
   // 3) If everything ok, send token to client
@@ -120,9 +141,9 @@ exports.updatePatient = catchAsync(async (req, res, next) => {
 // method to get the patient details
 exports.getPatient = catchAsync(async (req, res, next) => {
   const id = req.params.id;
-  const patient = await Patient.findById(id);
+  const patient = await Patient.findById(id).select("+password");
   if (!patient) {
-    return next(new AppError("No patient found with that id", 404));
+    return next(new AppError(`patient ${userNotFoundID}`, 404));
   }
   res.status(200).json({
     success: true,
@@ -131,6 +152,8 @@ exports.getPatient = catchAsync(async (req, res, next) => {
 });
 
 /***********************************PASSWORD RESET FUNCITONALITY ********************************************/
+
+// method to send a verification token to the patient email (email functionality is yet to be implemented)
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   // checking if there are any errors
   const errors = validationResult(req);
@@ -141,7 +164,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const { email } = req.body;
   const patient = await Patient.findOne({ email });
   if (!patient) {
-    return next(new AppError("No patient found with that email", 404));
+    return next(new AppError(`patient ${userNotFoundEmail}`, 404));
   }
   // create reset token and expiry
   const resetPasswordToken =
@@ -158,10 +181,11 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   res.status(200).json({
     success: true,
     resetToken: resetPasswordToken,
-    message: "Your token will expire in 10 minutes",
+    message: `${tokenExpiry} 10mins`,
   });
 });
 
+// method to reset the password in case of forgetten password
 exports.resetForgottenPassword = catchAsync(async (req, res, next) => {
   // checking if there are any errors
   const errors = validationResult(req);
@@ -174,10 +198,10 @@ exports.resetForgottenPassword = catchAsync(async (req, res, next) => {
 
   // checking token validity
   if (!patient) {
-    return next(new AppError("Invalid token", 400));
+    return next(new AppError(invalidToken, 400));
   }
   if (patient.resetPasswordExpiry < Date.now()) {
-    return next(new AppError("Token expired", 400));
+    return next(new AppError(tokenExpired, 400));
   }
 
   // updating password and token fields if the token is valid
@@ -187,7 +211,7 @@ exports.resetForgottenPassword = catchAsync(async (req, res, next) => {
   await patient.save();
   res.status(200).json({
     success: true,
-    message: "Password updated successfully",
+    message: passwordUpdateSuccess,
   });
 });
 
@@ -200,68 +224,135 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   }
   const { email, password, newPassword } = req.body;
 
-  const patient = await Patient.findOne({ email });
+  const patient = await Patient.findOne({ email }).select("+password");
   if (!patient) {
-    return next(new AppError("No patient found with that email", 404));
+    return next(new AppError(`Patient ${userNotFoundEmail}`, 404));
   }
   if (!(await matchEncryptions(password, patient.password))) {
-    return next(new AppError("Incorrect password", 400));
+    return next(new AppError(incorrectPassword, 400));
   }
   patient.password = bcrypt.hashSync(newPassword, 10);
   await patient.save();
   res.status(200).json({
     success: true,
-    message: "Password updated successfully",
+    message: passwordUpdateSuccess,
   });
+});
+
+/********************************************THIRD PARTY AUTHENTICATION FUNCTIONALITY  ******************************************/
+//method to login/singup user using google their google account
+exports.googleLogin = catchAsync(async (req, res, next) => {
+  // const { credentials, role, password } = req.body;
+
+  const { credentials } = req.body;
+
+  // console.log(jwt_decode(credentials));
+
+  const email = jwt_decode(credentials).email;
+
+  console.log(email);
+
+  // socialAuth(req, res, email, role, password);
+  socialAuth(req, res, next, email);
+});
+
+//method to login/singup user using google auth
+exports.facebookLogin = catchAsync(async (req, res, next) => {
+  // const { accessToken, userID, role, password } = req.body;
+  const { accessToken, userID } = req.body;
+  console.log(accessToken, userID);
+
+  // fetching the user data from facebook graph api using the userID and accessToken
+  const facebookURL = `https://graph.facebook.com/v14.0/${userID}?fields=name,email&access_token=${accessToken}`;
+
+  const response = await fetch(facebookURL);
+
+  const data = await response.json();
+
+  console.log(data);
+
+  const email = data.email;
+
+  // socialAuth(req, res, email, role, password);
+  socialAuth(req, res, next, email);
+});
+
+// social login/signup method that is common for both google and facebook endpoints
+const socialAuth = catchAsync(async (req, res, next, email, role, password) => {
+  const user = await Patient.findOne({ email });
+
+  // if client is already registered with the google account we will directly log them in and send an access token to the client
+  // if (user) {
+  //   return createSendToken(user, 200, req, res);
+  // }
+
+  if (!user) {
+    return next(new AppError(`Patient ${userNotFoundEmail}`, 404));
+  }
+
+  createSendToken(user, 200, req, res);
+
+  // // generating a random password if no password is provided from the client
+  // if (!password) {
+  //   password = crypto.randomBytes(10).toString("hex");
+  // }
+
+  // // if client is not registered with the google account we will register them
+  // const newUser = new User({
+  //   email,
+  //   role,
+  //   password: bcrypt.hashSync(password, 10),
+  // });
+
+  // await newUser.save();
+
+  // res
+  //   .status(200)
+  //   .json({ status: "success", message: "user registered successfully" });
 });
 
 /***********************HELPER FUNCTIONS**********************************/
 
 // method to send a token along with payload to user as a response to login request
-const createSendToken = (user, statusCode, req, res) => {
-  // create token
-  const token = signToken(user);
+// const createSendToken = (user, statusCode, req, res) => {
+//   // create token
+//   const token = signToken(user);
 
-  const data = {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    avatar: user.avatar,
-    gender: user.gender,
-    phone: user.phone,
-    dob: user.dob,
-    cnic: user.cnic,
-    address: user.address,
-    bio: user.bio,
-  };
+//   // const data = {
+//   //   id: user._id,
+//   //   name: user.name,
+//   //   email: user.email,
+//   //   role: user.role,
+//   //   avatar: user.avatar,
+//   //   gender: user.gender,
+//   //   phone: user.phone,
+//   //   dob: user.dob,
+//   //   cnic: user.cnic,
+//   //   address: user.address,
+//   //   bio: user.bio,
+//   // };
 
-  // creating a cookie to send back to the user
-  res.cookie("jwt", token, {
-    // maxAge: new Date(Date.now() + jwtConfig.expiresIn * 24 * 60 * 60 * 1000),
-    maxAge: 2 * 60 * 60 * 1000,
-    httpOnly: true,
-    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-  });
+//   // creating a cookie to send back to the user
+//   res.cookie("jwt", token, {
+//     // maxAge: new Date(Date.now() + jwtConf.expiresIn * 24 * 60 * 60 * 1000),
+//     maxAge: 2 * 60 * 60 * 1000,
+//     httpOnly: true,
+//     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+//   });
 
-  // Remove password from output
-  user.password = undefined;
+//   // Remove password from output
+//   user.password = undefined;
 
-  res.status(statusCode).json({
-    status: "success",
-    token,
-    data,
-  });
-};
+//   res.status(statusCode).json({
+//     status: "success",
+//     token,
+//     // data,
+//   });
+// };
 
-// method to sign the token along with the payload
-const signToken = ({ _id, email, role }) => {
-  return jwt.sign({ id: _id, email, role }, jwtConfig.accessSecret, {
-    expiresIn: "1h",
-  });
-};
-
-// // method to match passwords
-// const matchEncryptions = async (encryption, storedEncryption) => {
-//   return await bcrypt.compare(encryption, storedEncryption);
+// // method to sign the token along with the payload
+// const signToken = ({ _id, email, role }) => {
+//   return jwt.sign({ id: _id, email, role }, jwtConf.accessSecret, {
+//     expiresIn: "1h",
+//   });
 // };

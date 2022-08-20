@@ -12,18 +12,20 @@ const cors = require("cors");
 
 // const fileUpload = require("express-fileupload");
 
-
 // importing utils
-const AppError = require("./app/utils/helpers/appError");
+const { AppError } = require("./app/utils/helpers");
+const {
+  tooManyRequests,
+  urlNotFound,
+} = require("./app/utils/constants/RESPONSEMESSAGES");
 
 // importing controllers
 const globalErrorHandler = require("./app/controllers/errorController");
 
 // importing routers
-const authRoute = require("./app/routes/auth/authRoute");
+// const authRoute = require("./app/routes/auth/authRoute");
 
-const patientRoute = require("./app/routes/api/patientRoutes");
-
+const { patient, doctor } = require("./app/routes/api");
 
 // Start express app
 const app = express();
@@ -51,7 +53,7 @@ if (process.env.NODE_ENV === "development") {
 const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
-  message: "Too many requests from this IP, please try again in an hour!",
+  message: tooManyRequests,
 });
 app.use("/api", limiter);
 
@@ -69,10 +71,8 @@ app.use(xss());
 // Compress all responses
 app.use(compression());
 
-
 // file upload middleware
 // app.use(fileUpload());
-
 
 // Test middleware
 app.use((req, res, next) => {
@@ -82,18 +82,18 @@ app.use((req, res, next) => {
 });
 
 // Api endpoints
-app.use("/auth", authRoute);
+// app.use("/auth", authRoute);
 
-app.use("/api/v1/patient", patientRoute);
-
+app.use("/api/v1/patients", patient);
+app.use("/api/v1/doctors", doctor);
 
 // any irrelavant end point will hit this and throw error
 app.all("*", (req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+  next(new AppError(`${urlNotFound}: ${req.originalUrl}`, 404));
 });
 
 app.use(globalErrorHandler);
 
 module.exports = app;
 
-console.log("Imports work");
+// console.log("Imports work");

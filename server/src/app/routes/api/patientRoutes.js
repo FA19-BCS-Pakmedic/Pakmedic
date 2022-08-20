@@ -13,6 +13,8 @@ const {
   forgotPassword,
   resetForgottenPassword,
   resetPassword,
+  googleLogin,
+  facebookLogin,
 } = require("../../controllers/api/patientController");
 
 // import middlewares
@@ -20,25 +22,26 @@ const {
   checkDuplicatePatient,
   verifyToken,
   authorizeRole,
+  patientRegistrationValidator,
 } = require("../../middlewares");
 
 // import utils
 const {
   passwordRegex,
-  cnicRegex,
-  stringRegex,
-  phoneRegex,
-  dateOfBirthRegex,
+  // cnicRegex,
+  // stringRegex,
+  // phoneRegex,
+  // dateOfBirthRegex,
 } = require("../../utils/constants/REGEX");
 const ROLES = require("../../utils/constants/ROLES");
 const {
   invalidEmail,
   invalidPassword,
-  invalidCnic,
-  invalidStringRegex,
-  invalidPhoneNo,
-  invalidDOB,
-} = require("../../utils/constants/ERRORMESSAGES");
+  // invalidCnic,
+  // invalidStringRegex,
+  // invalidPhoneNo,
+  // invalidDOB,
+} = require("../../utils/constants/RESPONSEMESSAGES");
 
 // configuring multer
 const PATH = path.join(__dirname, "../../../public/images");
@@ -57,22 +60,25 @@ const upload = multer({ storage });
 // initializing router
 const router = express.Router();
 
+
+/*****************************ROUTES********************************/
+
+// register a patient
 router.post(
   "/register",
   [
     upload.single("avatar"),
-    check("email", invalidEmail).isEmail(),
-    check("password", invalidPassword).matches(passwordRegex),
-    check("cnic", invalidCnic).matches(cnicRegex),
-    check("name", invalidStringRegex).matches(stringRegex),
-    check("phone", invalidPhoneNo).matches(phoneRegex),
-    check("dob", invalidDOB).matches(dateOfBirthRegex),
+    patientRegistrationValidator,
     checkDuplicatePatient,
   ],
   register
 );
 
 router.post("/login", login);
+
+// third party login routes
+router.post("/login/facebook", facebookLogin);
+router.post("/login/google", googleLogin);
 
 // routes to reset patient's forgotten password
 router.patch(
@@ -96,7 +102,7 @@ router.patch("/reset-password", [
   resetPassword,
 ]);
 
-router.use(authorizeRole(ROLES[1]));
+router.use(authorizeRole(ROLES[0]));
 
 // patient routes to get, update users
 router.route("/:id").get(getPatient).patch(updatePatient);

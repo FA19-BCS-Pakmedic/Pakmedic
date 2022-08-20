@@ -3,28 +3,30 @@ const mongoose = require("mongoose");
 const CITIES = require("../utils/constants/CITIES");
 const ROLES = require("../utils/constants/ROLES");
 const GENDERS = require("../utils/constants/GENDERS");
+const { requiredError } = require("../utils/constants/RESPONSEMESSAGES");
 
 const pmcSchema = mongoose.Schema({
   id: {
     type: String,
-    required: [true, "Please enter a pmcID"],
+    required: [true, `${requiredError} pmcID`],
   },
   qualifications: {
     type: [String],
+    required: [true, `${requiredError} qualifications`],
   },
   issueDate: {
     type: Date,
-    required: [true, "Please enter a issueDate"],
+    required: [true, `${requiredError} issueDate`],
     default: Date.now(),
   },
   expiryDate: {
     type: Date,
-    required: [true, "Please enter a expiryDate"],
+    required: [true, `${requiredError} expiryDate`],
     default: Date.now(),
   },
   status: {
     type: String,
-    required: [true, "Please enter a status"],
+    required: [true, `${requiredError} status`],
   },
 });
 
@@ -32,56 +34,57 @@ const doctorSchema = mongoose.Schema({
   //authentication data
   email: {
     type: String,
-    required: [true, "Please enter an email"],
+    required: [true, `${requiredError} email`],
   },
   password: {
     type: String,
-    required: [true, "Please enter a password"],
+    required: [true, `${requiredError} password`],
+    select: false,
   },
   role: {
     type: String,
-    required: [true, "Please enter a role"],
+    required: [true, `${requiredError} role`],
     enum: Object.values(ROLES),
-  },
-
-  //pmc data
-  pmc: {
-    type: pmcSchema,
-    required: [true, "Please enter your pmc details"],
   },
 
   //general information
   name: {
     type: String,
-    required: [true, "Please enter a name"],
+    required: [true, `${requiredError} name`],
   },
   phone: {
     type: String,
-    required: [true, "Please enter a phone number"],
+    required: [true, `${requiredError} phone number`],
   },
   dob: {
     type: Date,
-    required: [true, "Please enter a date of birth"],
+    required: [true, `${requiredError} date of birth`],
   },
   gender: {
     type: String,
-    required: [true, "Please enter your gender"],
+    required: [true, `${requiredError} gender`],
     enum: Object.values(GENDERS),
   },
   location: {
     type: String,
-    required: [true, "Please enter a location"],
+    required: [true, `${requiredError} location`],
     enum: Object.values(CITIES),
   },
   avatar: {
     type: String,
-    required: [true, "Please enter an avatar"],
+    required: [true, `${requiredError} avatar`],
+  },
+
+  //pmc data
+  pmc: {
+    type: pmcSchema,
+    required: [true, `${requiredError} pmc details`],
   },
 
   //doctor specific information
   specialty: {
     type: String,
-    required: [true, "Please enter a specialty"],
+    required: [true, `${requiredError} specialty`],
   },
   about: {
     type: String,
@@ -105,6 +108,20 @@ const doctorSchema = mongoose.Schema({
     type: [String],
   },
 
+  //account verification
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+
+  //password reset related fields
+  resetPasswordToken: {
+    type: String,
+  },
+  resetPasswordExpiry: {
+    type: Date,
+  },
+
   // registration date
   registeredOn: {
     type: Date,
@@ -112,4 +129,4 @@ const doctorSchema = mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Doctor", doctorSchema);
+module.exports = mongoose.model(`Doctor`, doctorSchema);

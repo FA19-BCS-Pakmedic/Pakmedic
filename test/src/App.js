@@ -8,24 +8,24 @@ import { findAllByDisplayValue } from "@testing-library/react";
 
 import { useEffect } from "react";
 
-
 function App() {
   const googleLoginSuccess = async (data) => {
-    console.log(jwtDecode(data.credential));
-    const { email, email_verified } = jwtDecode(data.credential);
+    // console.log(jwtDecode(data.credential));
+    // const { email, email_verified } = jwtDecode(data.credential);
 
-    if (email_verified) {
-      const response = await axios.post(
-        "http://localhost:8000/auth/google",
-        {
-          credentials: data.credential,
-          role: "patient",
-          password: "hehe1234",
-        },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      console.log(response);
-    }
+    // if (email_verified) {
+    //   const response = await axios.post(
+    //     "http://localhost:8000/auth/google",
+    //     {
+    //       credentials: data.credential,
+    //       role: "patient",
+    //       password: "hehe1234",
+    //     },
+    //     { headers: { "Content-Type": "application/json" } }
+    //   );
+    //   console.log(response);
+    // }
+    console.log(data);
   };
 
   const googleLoginFailure = async (err) => {
@@ -35,7 +35,6 @@ function App() {
   const responseFacebook = (response) => {
     console.log(response);
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,7 +47,6 @@ function App() {
 
     fetchData();
   });
-
 
   return (
     <div className="App">

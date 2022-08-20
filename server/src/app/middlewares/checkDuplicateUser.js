@@ -1,6 +1,5 @@
 const db = require("../models");
-const AppError = require("../utils/helpers/appError");
-const catchAsync = require("../utils/helpers/catchAsync");
+const { AppError, catchAsync } = require("../utils/helpers");
 const User = db.user;
 
 // function to check if there are users with the same email

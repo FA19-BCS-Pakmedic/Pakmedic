@@ -7,13 +7,9 @@ const { OAuth2Client } = require("google-auth-library");
 const { validationResult } = require("express-validator");
 const fetch = require("node-fetch");
 
-
-
-
 //importing utils
-const catchAsync = require("../../utils/helpers/catchAsync");
-const AppError = require("../../utils/helpers/appError");
-const jwtConfig = require("../../utils/configs/jwtConfig");
+const { catchAsync, AppError } = require("../../utils/helpers");
+const { jwtConf } = require("../../utils/configs");
 
 // importing models
 const db = require("../../models");
@@ -144,7 +140,7 @@ const createSendToken = (user, statusCode, req, res) => {
 
 // method to sign the token along with the payload
 const signToken = ({ email, role }) => {
-  return jwt.sign({ email, role }, jwtConfig.accesSecret, {
+  return jwt.sign({ email, role }, jwtConf.accesSecret, {
     expiresIn: "30s",
   });
 };

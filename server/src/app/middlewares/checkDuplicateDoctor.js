@@ -1,8 +1,13 @@
+// model import
 const db = require("../models");
-const AppError = require("../utils/helpers/appError");
-const catchAsync = require("../utils/helpers/catchAsync");
 
+// utils import
+const { AppError, catchAsync } = require("../utils/helpers");
 const ROLES = require("../utils/constants/ROLES");
+const {
+  duplicateDoctor,
+  invalidRole,
+} = require("../utils/constants/RESPONSEMESSAGES");
 
 // function to check if there are users with the same email or pmc id
 module.exports = catchAsync(async (req, res, next) => {
@@ -10,16 +15,14 @@ module.exports = catchAsync(async (req, res, next) => {
   const { id } = pmc;
   let user;
 
-  if (role === Object.values(ROLES)[0]) {
+  if (role === Object.values(ROLES)[1]) {
     const Doctor = db.doctor;
     user = await Doctor.findOne({ $or: [{ email }, { id }] });
     if (user) {
-      return next(
-        new AppError("This email or PMC id is already registered", 409)
-      );
+      return next(new AppError(duplicateDoctor, 409));
     }
   } else {
-    return next(new AppError("Invalid role", 404));
+    return next(new AppError(invalidRole, 404));
   }
 
   next();

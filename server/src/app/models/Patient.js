@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const ROLES = require("../utils/constants/ROLES");
 const GENDERS = require("../utils/constants/GENDERS");
 const BLOODTYPES = require("../utils/constants/BLOODTYPES");
+const { requiredError } = require("../utils/constants/RESPONSEMESSAGES");
 
 const biologicalSchema = mongoose.Schema({
   height: {
@@ -33,44 +34,45 @@ const patientSchema = mongoose.Schema({
   //authentication data
   email: {
     type: String,
-    required: [true, "Please enter an email"],
+    required: [true, `${requiredError}an email`],
   },
   password: {
     type: String,
-    required: [true, "Please enter a password"],
+    required: [true, `${requiredError} password`],
+    select: false,
   },
   role: {
     type: String,
-    required: [true, "Please enter a role"],
+    required: [true, `${requiredError} role`],
     enum: Object.values(ROLES),
   },
 
   // general data
   name: {
     type: String,
-    required: [true, "Please enter a name"],
+    required: [true, `${requiredError} name`],
   },
   phone: {
     type: String,
-    required: [true, "Please enter a phone number"],
+    required: [true, `${requiredError} phone number`],
   },
   dob: {
     type: Date,
-    required: [true, "Please enter a date of birth"],
+    required: [true, `${requiredError} date of birth`],
   },
   gender: {
     type: String,
-    required: [true, "Please enter your gender"],
+    required: [true, `${requiredError} gender`],
     enum: Object.values(GENDERS),
   },
   cnic: {
     type: String,
-    required: [true, "Please enter your cnic"],
+    required: [true, `${requiredError} cnic`],
   },
   address: {
     // replace with address reference
     type: String,
-    required: [true, "Please enter your address"],
+    required: [true, `${requiredError} address`],
   },
   avatar: {
     type: String,
@@ -114,6 +116,12 @@ const patientSchema = mongoose.Schema({
     type: [String],
   },
 
+  //account verification
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+
   //password reset related fields
   resetPasswordToken: {
     type: String,
@@ -121,6 +129,12 @@ const patientSchema = mongoose.Schema({
   resetPasswordExpiry: {
     type: Date,
   },
+
+  // registration date
+  registeredOn: {
+    type: Date,
+    default: Date.now(),
+  },
 });
 
-module.exports = mongoose.model("Patient", patientSchema);
+module.exports = mongoose.model(`Patient`, patientSchema);
