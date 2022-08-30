@@ -71,8 +71,11 @@ const patientSchema = mongoose.Schema({
   },
   address: {
     // replace with address reference
-    type: String,
+    // type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Address",
     required: [true, `${requiredError} address`],
+    // required: [true, `${requiredError} address`],
   },
   avatar: {
     type: String,

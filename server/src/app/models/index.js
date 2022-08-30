@@ -8,6 +8,6 @@ db.user = require("./User");
 
 db.patient = require("./Patient");
 db.doctor = require("./Doctor");
-
-
+db.address = require("./Address");
+db.hospital = require("./Hospital");
 module.exports = db;

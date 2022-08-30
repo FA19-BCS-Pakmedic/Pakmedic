@@ -23,24 +23,15 @@ const {
   verifyToken,
   authorizeRole,
   patientRegistrationValidator,
+  fetchAddress,
 } = require("../../middlewares");
 
 // import utils
-const {
-  passwordRegex,
-  // cnicRegex,
-  // stringRegex,
-  // phoneRegex,
-  // dateOfBirthRegex,
-} = require("../../utils/constants/REGEX");
+const { passwordRegex } = require("../../utils/constants/REGEX");
 const ROLES = require("../../utils/constants/ROLES");
 const {
   invalidEmail,
   invalidPassword,
-  // invalidCnic,
-  // invalidStringRegex,
-  // invalidPhoneNo,
-  // invalidDOB,
 } = require("../../utils/constants/RESPONSEMESSAGES");
 
 // configuring multer
@@ -60,7 +51,6 @@ const upload = multer({ storage });
 // initializing router
 const router = express.Router();
 
-
 /*****************************ROUTES********************************/
 
 // register a patient
@@ -70,22 +60,25 @@ router.post(
     upload.single("avatar"),
     patientRegistrationValidator,
     checkDuplicatePatient,
+    fetchAddress,
   ],
   register
 );
 
+// login a patient
 router.post("/login", login);
 
 // third party login routes
 router.post("/login/facebook", facebookLogin);
 router.post("/login/google", googleLogin);
 
-// routes to reset patient's forgotten password
+// get a validation token to reset a forgotten password
 router.patch(
   "/forgot-password",
   [check("email", invalidEmail).isEmail()],
   forgotPassword
 );
+// reset a forgotten password
 router.patch(
   "/reset-forgotten-password",
   [check("password", invalidPassword).matches(passwordRegex)],
@@ -95,7 +88,7 @@ router.patch(
 // middlewares to verify users
 router.use(verifyToken);
 
-//route to reset patient's password if the patient is logged in
+//reset Password
 router.patch("/reset-password", [
   check("email", invalidEmail).isEmail(),
   check("password", invalidPassword).matches(passwordRegex),

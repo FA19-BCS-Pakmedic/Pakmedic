@@ -11,7 +11,15 @@ const pmcSchema = mongoose.Schema({
     required: [true, `${requiredError} pmcID`],
   },
   qualifications: {
-    type: [String],
+    //this will be replaced with the reference to another collection
+    type: [
+      {
+        speciality: String,
+        degree: String,
+        university: String,
+        passingYear: String,
+      },
+    ],
     required: [true, `${requiredError} qualifications`],
   },
   issueDate: {
@@ -82,7 +90,7 @@ const doctorSchema = mongoose.Schema({
   },
 
   //doctor specific information
-  specialty: {
+  speciality: {
     type: String,
     required: [true, `${requiredError} specialty`],
   },

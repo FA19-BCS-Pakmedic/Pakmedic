@@ -25,7 +25,7 @@ const globalErrorHandler = require("./app/controllers/errorController");
 // importing routers
 // const authRoute = require("./app/routes/auth/authRoute");
 
-const { patient, doctor } = require("./app/routes/api");
+const { patient, doctor, chatbot, hospital } = require("./app/routes/api");
 
 // Start express app
 const app = express();
@@ -86,6 +86,8 @@ app.use((req, res, next) => {
 
 app.use("/api/v1/patients", patient);
 app.use("/api/v1/doctors", doctor);
+app.use("/api/v1/chatbot", chatbot);
+app.use("/api/v1/hospitals", hospital);
 
 // any irrelavant end point will hit this and throw error
 app.all("*", (req, res, next) => {

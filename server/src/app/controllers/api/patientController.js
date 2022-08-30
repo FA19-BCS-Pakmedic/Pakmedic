@@ -1,10 +1,7 @@
 //npm packages import
 const crypto = require("crypto");
-// const jwt = require("jsonwebtoken");
 const jwt_decode = require("jwt-decode");
-// const { promisify } = require("util");
 const bcrypt = require("bcrypt");
-// const formidable = require("formidable");
 const { validationResult } = require("express-validator");
 const fetch = require("node-fetch");
 
@@ -13,11 +10,12 @@ const {
   catchAsync,
   AppError,
   matchEncryptions,
-  // deleteFile,
   createSendToken,
+  sendMail,
+  getConfCodeEmailTemplate,
 } = require("../../utils/helpers");
-// const { jwtConf } = require("../../utils/configs/");
 
+// importing response messages
 const {
   provideEmailPassword,
   incorrectEmailPassword,
@@ -31,6 +29,7 @@ const {
   userRegistered,
   userNotRegistered,
 } = require("../../utils/constants/RESPONSEMESSAGES");
+
 //importing models
 const db = require("../../models");
 const Patient = db.patient;
@@ -38,14 +37,6 @@ const Patient = db.patient;
 // method to sign up patient
 exports.register = catchAsync(async (req, res, next) => {
   req.body.avatar = req.file.filename;
-  // console.log("Reaching the controller function");
-  // checking if there are any errors
-  // const errors = validationResult(req);
-  // console.log(errors);
-  // if (errors.errors.length > 0) {
-  //   deleteFile(req.file.path);
-  //   return next(new AppError(errors.array()[0].msg, 400));
-  // }
 
   const {
     email,
@@ -56,14 +47,16 @@ exports.register = catchAsync(async (req, res, next) => {
     dob,
     gender,
     cnic,
-    address,
     height,
     weight,
     bloodType,
     avatar,
     resetPasswordToken,
     resetPasswordExpiry,
+    address,
   } = req?.body;
+
+  // console.log(coordinates);
 
   const patient = new Patient({
     email,
@@ -74,7 +67,6 @@ exports.register = catchAsync(async (req, res, next) => {
     dob: new Date(dob),
     gender,
     cnic,
-    address,
     avatar,
     bio: {
       height,
@@ -83,6 +75,7 @@ exports.register = catchAsync(async (req, res, next) => {
     },
     resetPasswordToken,
     resetPasswordExpiry,
+    address,
   });
 
   const data = await patient.save();
@@ -96,8 +89,6 @@ exports.register = catchAsync(async (req, res, next) => {
 
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-
-  // console.table(req.body);
 
   // Check if email and password exist
   if (!email || !password) {
@@ -116,41 +107,6 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res);
 });
 
-exports.updatePatient = catchAsync(async (req, res, next) => {
-  id = req.decoded.id;
-  data = req.body;
-  // console.log(req.cookie);
-  // console.log(id, data);
-
-  // const patient = await Patient.findOne({ _id: id });
-  // if (!patient) {
-  //   return next(new AppError("No patient found with that email", 404));
-  // }
-  const updatedPatient = await Patient.findOneAndUpdate(
-    { _id: id },
-    { $set: data },
-    { new: true }
-  );
-
-  res.status(200).json({
-    success: true,
-    data: updatedPatient,
-  });
-});
-
-// method to get the patient details
-exports.getPatient = catchAsync(async (req, res, next) => {
-  const id = req.params.id;
-  const patient = await Patient.findById(id).select("+password");
-  if (!patient) {
-    return next(new AppError(`patient ${userNotFoundID}`, 404));
-  }
-  res.status(200).json({
-    success: true,
-    data: patient,
-  });
-});
-
 /***********************************PASSWORD RESET FUNCITONALITY ********************************************/
 
 // method to send a verification token to the patient email (email functionality is yet to be implemented)
@@ -167,17 +123,23 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     return next(new AppError(`patient ${userNotFoundEmail}`, 404));
   }
   // create reset token and expiry
-  const resetPasswordToken =
-    crypto.randomBytes(20).toString("hex") + Date.now();
+  const resetPasswordToken = Math.floor(1000 + Math.random() * 9000).toString();
   const resetPasswordExpiry = Date.now() + 600000; // 10 mins
 
-  // updating the patient data by adding token and expiry
-  const updatedPatient = await Patient.findOneAndUpdate(
-    { email },
-    { $set: { resetPasswordToken, resetPasswordExpiry } },
-    { new: true }
-  );
-  console.log(updatedPatient);
+  // getting a custom html template for confirmation code mail
+  const htmlContent = getConfCodeEmailTemplate(resetPasswordToken);
+  // console.log(htmlContent);
+  const subject = "Confirmation Code";
+
+  // send email to patient
+  await sendMail(email, patient.name, htmlContent, subject);
+
+  // update patient fields and save
+  patient.resetPasswordToken = resetPasswordToken;
+  patient.resetPasswordExpiry = resetPasswordExpiry;
+  const updatedPatient = await patient.save();
+
+  // console.log(updatedPatient);
   res.status(200).json({
     success: true,
     resetToken: resetPasswordToken,
@@ -193,8 +155,10 @@ exports.resetForgottenPassword = catchAsync(async (req, res, next) => {
     return next(new AppError(errors.array()[0].msg, 400));
   }
 
-  const { resetPasswordToken, password } = req.body;
-  const patient = await Patient.findOne({ resetPasswordToken });
+  const { email, resetPasswordToken, password } = req.body;
+  const patient = await Patient.findOne({
+    $$or: [{ email }, { resetPasswordToken }],
+  });
 
   // checking token validity
   if (!patient) {
@@ -311,48 +275,38 @@ const socialAuth = catchAsync(async (req, res, next, email, role, password) => {
   //   .json({ status: "success", message: "user registered successfully" });
 });
 
-/***********************HELPER FUNCTIONS**********************************/
+/**************************CRUD OPERATIONS****************************/
 
-// method to send a token along with payload to user as a response to login request
-// const createSendToken = (user, statusCode, req, res) => {
-//   // create token
-//   const token = signToken(user);
+exports.updatePatient = catchAsync(async (req, res, next) => {
+  id = req.decoded.id;
+  data = req.body;
+  // console.log(req.cookie);
+  // console.log(id, data);
 
-//   // const data = {
-//   //   id: user._id,
-//   //   name: user.name,
-//   //   email: user.email,
-//   //   role: user.role,
-//   //   avatar: user.avatar,
-//   //   gender: user.gender,
-//   //   phone: user.phone,
-//   //   dob: user.dob,
-//   //   cnic: user.cnic,
-//   //   address: user.address,
-//   //   bio: user.bio,
-//   // };
+  // const patient = await Patient.findOne({ _id: id });
+  // if (!patient) {
+  //   return next(new AppError("No patient found with that email", 404));
+  // }
+  const updatedPatient = await Patient.findOneAndUpdate(
+    { _id: id },
+    { $set: data },
+    { new: true }
+  );
 
-//   // creating a cookie to send back to the user
-//   res.cookie("jwt", token, {
-//     // maxAge: new Date(Date.now() + jwtConf.expiresIn * 24 * 60 * 60 * 1000),
-//     maxAge: 2 * 60 * 60 * 1000,
-//     httpOnly: true,
-//     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-//   });
+  res.status(200).json({
+    success: true,
+    data: updatedPatient,
+  });
+});
 
-//   // Remove password from output
-//   user.password = undefined;
-
-//   res.status(statusCode).json({
-//     status: "success",
-//     token,
-//     // data,
-//   });
-// };
-
-// // method to sign the token along with the payload
-// const signToken = ({ _id, email, role }) => {
-//   return jwt.sign({ id: _id, email, role }, jwtConf.accessSecret, {
-//     expiresIn: "1h",
-//   });
-// };
+exports.getPatient = catchAsync(async (req, res, next) => {
+  const id = req.params.id;
+  const patient = await Patient.findById(id).select("+password");
+  if (!patient) {
+    return next(new AppError(`patient ${userNotFoundID}`, 404));
+  }
+  res.status(200).json({
+    success: true,
+    data: patient,
+  });
+});

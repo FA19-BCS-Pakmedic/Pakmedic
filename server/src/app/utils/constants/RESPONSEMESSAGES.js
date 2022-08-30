@@ -24,10 +24,16 @@ module.exports = {
   requiredError: "Please enter a/an ",
   duplicateDoctor: "This email or PMC id is already registered",
   duplicatePatient: "This email or cnic is already registered",
+  duplicateEmail: "Email is already in use",
+  duplicateCnic: "Cnic is already in use",
+  duplicatePmcID: "Pmc ID is already in use",
   noPermission: "You donot have the permission to access this resource",
   provideEmailPassword: "Please provide",
   incorrectEmailPassword: "Incorrect email or password",
   incorrectPassword: "Incorrect Password",
+  noMatchedIntent: "Sorry i dont quite understand what you are talking about",
+  noDoctorsFound: "No doctors found",
+  noHospitalsFound: "No hospital/s found",
   // notLoggedIn: "You are not logged in! Please log in to get access.",
 
   // warning messages
