@@ -34,6 +34,7 @@ module.exports = {
   noMatchedIntent: "Sorry i dont quite understand what you are talking about",
   noDoctorsFound: "No doctors found",
   noHospitalsFound: "No hospital/s found",
+  noExpFound: "No experience/s found",
   // notLoggedIn: "You are not logged in! Please log in to get access.",
 
   // warning messages

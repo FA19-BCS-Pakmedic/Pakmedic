@@ -10,4 +10,5 @@ middlewares.authorizeRole = require("./roleAuthorization");
 middlewares.patientRegistrationValidator = require("./patientRegisterValidator");
 middlewares.doctorRegistrationValidator = require("./doctorRegisterValidator");
 middlewares.fetchAddress = require("./fetchAddress");
+middlewares.fetchHospital = require("./fetchHospital");
 module.exports = middlewares;
