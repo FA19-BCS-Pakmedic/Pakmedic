@@ -46,6 +46,7 @@ module.exports = catchAsync(async (req, res, next) => {
       : decoded.role === ROLES[1]
       ? models.doctor
       : models.admin;
+      
 
   // 3) Check if user still exists
   const currentUser = await Model.findById(decoded.id);

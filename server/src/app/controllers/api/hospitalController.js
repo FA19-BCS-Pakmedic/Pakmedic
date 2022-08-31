@@ -4,6 +4,7 @@ const { noHospitalsFound } = require("../../utils/constants/RESPONSEMESSAGES");
 
 // import model
 const Hospital = require("../../models").hospital;
+const Address = require("../../models").address;
 
 // create hospital
 exports.createHospital = catchAsync(async (req, res, next) => {
@@ -77,10 +78,24 @@ exports.updateHospital = catchAsync(async (req, res, next) => {
 //delete hospital
 exports.deleteHospital = catchAsync(async (req, res, next) => {
   const id = req.params.id;
-  const hospital = await Hospital.findByIdAndDelete(id);
+  // const hospital = await Hospital.findByIdAndDelete(id);
+  const hospital = await Hospital.findById(id);
+
+  // check if there is no hospital with that id
   if (!hospital) {
     return next(new AppError(noHospitalsFound, 404));
   }
+
+  // fetch the address reference id
+  const addressId = hospital.address;
+
+  // delete address associated with the hospital
+  await Address.findByIdAndDelete(addressId);
+
+  // delete hospital
+  await hospital.remove();
+
+  // return response
   res.status(204).json({
     status: "success",
     data: null,

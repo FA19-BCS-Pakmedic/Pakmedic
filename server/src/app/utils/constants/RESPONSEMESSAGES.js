@@ -35,6 +35,7 @@ module.exports = {
   noDoctorsFound: "No doctors found",
   noHospitalsFound: "No hospital/s found",
   noExpFound: "No experience/s found",
+  noServiceFound: "No service/s found",
   // notLoggedIn: "You are not logged in! Please log in to get access.",
 
   // warning messages

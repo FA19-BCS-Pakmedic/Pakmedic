@@ -1,17 +1,33 @@
 // importing utils
-const { AppError, catchAsync } = require("../../utils/helpers");
-const { noExpFound } = require("../../utils/constants/RESPONSEMESSAGES");
+const { AppError, catchAsync, deleteFile } = require("../../utils/helpers");
+const {
+  noExpFound,
+  noDoctorsFound,
+} = require("../../utils/constants/RESPONSEMESSAGES");
 
-// importing model
+// importing models
 const Experience = require("../../models").experience;
+const Hospital = require("../../models").hospital;
+const Address = require("../../models").address;
+const Doctor = require("../../models").doctor;
 
 // add experience
 exports.addExperience = catchAsync(async (req, res, next) => {
+  const doctorID = req.decoded.id;
+
+  console.log(req.decoded);
   const { title, hospital } = req.body;
 
   const experience = new Experience({ title, hospital });
 
-  await experience.save();
+  const data = await experience.save();
+
+  // save the key from saved experience to the doctor document
+  const doctor = await Doctor.findByIdAndUpdate(doctorID, {
+    $push: { experiences: data._id },
+  });
+
+  // console.log(doctor);
 
   res.status(200).json({
     status: "success",
@@ -33,6 +49,41 @@ exports.getAllExperiences = catchAsync(async (req, res, next) => {
   if (!experiences.length) {
     return next(new AppError(noExpFound, 404));
   }
+
+  res.status(200).json({
+    status: "success",
+    results: experiences.length,
+    data: {
+      experiences,
+    },
+  });
+});
+
+// get a single doctor experiences
+exports.getSpecificDoctorExperiences = catchAsync(async (req, res, next) => {
+  const docid = req.params.id;
+
+  const doctor = await Doctor.findById(docid)
+    .select({ name: 1, experiences: 1 })
+    .populate({
+      path: "experiences",
+      model: "Experience",
+      populate: {
+        path: "hospital",
+        model: "Hospital",
+        populate: { path: "address", model: "Address" },
+      },
+    });
+
+  console.log(doctor);
+
+  if (!doctor) {
+    return next(new AppError(noDoctorsFound, 404));
+  }
+
+  const experiences = doctor.experiences;
+
+  console.log(experiences);
 
   res.status(200).json({
     status: "success",
@@ -86,7 +137,29 @@ exports.updateExperience = catchAsync(async (req, res, next) => {
 // delete experience
 exports.deleteExperience = catchAsync(async (req, res, next) => {
   const id = req.params.id;
-  const experience = await Experience.findByIdAndDelete(id);
+  const docId = req.decoded.id;
+  const experience = await Experience.findById(id).populate("hospital");
+  const hospitalID = experience.hospital._id;
+  const addressID = experience.hospital.address;
+
+  console.log(experience);
+
+  // remove the experience from the array of doctor document
+  const doctor = await Doctor.findByIdAndUpdate(docId, {
+    $pull: { experiences: experience._id },
+  });
+
+  // remove hospital
+  await Hospital.findByIdAndDelete(hospitalID);
+
+  // remove address
+  await Address.findByIdAndDelete(addressID);
+
+  // remove experience
+  await experience.remove();
+
+  // add delete file functionality aswell !!!!!!!!!!!!!!!!!
+
   if (!experience) {
     return next(new AppError(noExpFound, 404));
   }

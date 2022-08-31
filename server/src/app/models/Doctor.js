@@ -97,15 +97,11 @@ const doctorSchema = mongoose.Schema({
   about: {
     type: String,
   },
-  experiences: {
-    type: [String],
-  },
+  experiences: [{ type: mongoose.Schema.Types.ObjectId, ref: "Experience" }],
   treatments: {
     type: [String],
   },
-  services: {
-    type: [String],
-  },
+  services: [{ type: mongoose.Schema.Types.ObjectId, ref: "Service" }],
   eSign: {
     type: String,
   },

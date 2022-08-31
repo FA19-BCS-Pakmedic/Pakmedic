@@ -11,13 +11,13 @@ const router = express.Router();
 
 // importing controller
 const {
-  addExperience,
-  getAllExperiences,
-  getExperienceById,
-  getSpecificDoctorExperiences,
-  updateExperience,
-  deleteExperience,
-} = require("../../controllers/api/experienceController");
+  addService,
+  getAllServices,
+  getServiceById,
+  getSpecificDoctorServices,
+  deleteService,
+  updateService,
+} = require("../../controllers/api/serviceController");
 
 // importing middlewares
 const {
@@ -55,21 +55,18 @@ router.post(
     fetchAddress,
     fetchHospital,
   ],
-  addExperience
+  addService
 ); //this route is only accessible to doctors
 // .get(getAllExperiences);
 
-router.get("/", [authorizeRole(roles[2])], getAllExperiences); //this route is only accessible to admin
+router.get("/", [authorizeRole(roles[2])], getAllServices); //this route is only accessible to admin
 
 router
   .route("/:id")
-  .get(getSpecificDoctorExperiences)
-  .patch(
-    [upload.single("image"), fetchAddress, fetchHospital],
-    updateExperience
-  )
-  .delete(deleteExperience); //these routes is accessible to all type of users
+  .get(getSpecificDoctorServices)
+  .patch([upload.single("image"), fetchAddress, fetchHospital], updateService)
+  .delete(deleteService); //these routes is accessible to all type of users
 
-router.route("/:id/:docid").get(getExperienceById); //this routes is accessible to all type of users
+router.route("/:id/:docid").get(getServiceById); //this routes is accessible to all type of users
 
 module.exports = router;
