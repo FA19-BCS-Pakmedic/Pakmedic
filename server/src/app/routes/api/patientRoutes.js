@@ -24,6 +24,7 @@ const {
   authorizeRole,
   patientRegistrationValidator,
   fetchAddress,
+  singleFileUpload,
 } = require("../../middlewares");
 
 // import utils
@@ -34,20 +35,6 @@ const {
   invalidPassword,
 } = require("../../utils/constants/RESPONSEMESSAGES");
 
-// configuring multer
-const PATH = path.join(__dirname, "../../../public/images");
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, PATH);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `avatar-${Date.now()}.${file.mimetype.split("/")[1]}`);
-  },
-});
-
-const upload = multer({ storage });
-
 // initializing router
 const router = express.Router();
 
@@ -57,7 +44,7 @@ const router = express.Router();
 router.post(
   "/register",
   [
-    upload.single("avatar"),
+    singleFileUpload("avatar", "images", "avatar"),
     patientRegistrationValidator,
     checkDuplicatePatient,
     fetchAddress,

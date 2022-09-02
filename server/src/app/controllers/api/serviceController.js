@@ -165,7 +165,7 @@ exports.deleteService = catchAsync(async (req, res, next) => {
   const hospital = await Hospital.findById(hospitalID);
 
   // delete the image of hospital
-  deleteFile(hospital.image);
+  deleteFile(hospital.image, "images");
 
   // delete the hospital
   hospital.remove();

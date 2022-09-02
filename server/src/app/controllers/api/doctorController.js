@@ -16,6 +16,7 @@ const {
   matchEncryptions,
   sendMail,
   getConfCodeEmailTemplate,
+  deleteFile,
 } = require("../../utils/helpers");
 const { pmcConf } = require("../../utils/configs");
 const {
@@ -30,6 +31,12 @@ const {
   treatmentAdded,
   treatmentDeleted,
   userNotFound,
+  eSignAdded,
+  eSignDeleted,
+  eSignUpdated,
+  successfullyAdded,
+  successfullyDeleted,
+  successfullyUpdated,
 } = require("../../utils/constants/RESPONSEMESSAGES");
 
 //importing models
@@ -303,7 +310,68 @@ const socialAuth = catchAsync(async (req, res, next, email, role, password) => {
   //   .json({ status: "success", message: "user registered successfully" });
 });
 
-/*****************************************CRD OPERATIONS FOR TREATMENTS IN DOCTOR'S PROFILE****************************/
+/***************************DOCTOR UPDATION AND DELETION OPERATIONS**********************************/
+// method to update doctor details
+exports.updateDoctor = catchAsync(async (req, res, next) => {
+  // // checking if there are any errors
+  // const errors = validationResult(req);
+  // if (errors.errors.length > 0) {
+  //   return next(new AppError(errors.array()[0].msg, 400));
+  // }
+
+  const id = req.decoded.id;
+
+  const data = req.body;
+
+  // checking if the doctor exists
+  const doctor = await Doctor.findById(id);
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  // updating the doctor details
+  const updatedDoctor = await Doctor.findByIdAndUpdate(
+    id,
+    { $set: data },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  res.status(200).json({
+    success: true,
+    message: `Docter ${successfullyUpdated}`,
+    data: {
+      updatedDoctor,
+    },
+  });
+});
+
+// method to delete the doctor account along with all the embedded documents and related images
+exports.deleteDoctor = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+
+  // checking if the doctor exists
+  const doctor = await Doctor.findById(id);
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  // deleting the profile image of doctor
+  if (doctor.avatar) {
+    deleteFile(doctor.avatar, "images");
+  }
+
+  // deleting the doctor account
+  await Doctor.findByIdAndDelete(id);
+  res.status(200).json({
+    success: true,
+    message: `Doctor ${successfullyDeleted}`,
+  });
+});
+
+/*****************************************TREATMENTS FUNCTIONS****************************/
 
 //add a treatment
 exports.addTreatment = catchAsync(async (req, res, next) => {
@@ -324,7 +392,10 @@ exports.addTreatment = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: treatmentAdded,
+    message: `Treatment ${successfullyAdded}`,
+    data: {
+      doctor,
+    },
   });
 });
 
@@ -344,7 +415,7 @@ exports.removeTreatment = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: treatmentDeleted,
+    message: `Treatment ${successfullyDeleted}`,
   });
 });
 
@@ -363,6 +434,107 @@ exports.findDoctorByTreatment = catchAsync(async (req, res, next) => {
     results: doctors.length,
     data: {
       doctors,
+    },
+  });
+});
+
+/*****************************************E-SIGN FUNCTIONS****************************/
+// add esign file and add the file path to the doctor's document
+exports.addESign = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+  const eSign = req.file.filename;
+
+  const doctor = await Doctor.findById(id);
+
+  if (!doctor) {
+    deleteFile(req.file.filename, "images");
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  // add the eSign value to the eSign field
+  doctor.eSign = eSign;
+
+  await doctor.save();
+
+  res.status(200).json({
+    success: true,
+    message: `E-Signature ${successfullyAdded}`,
+    data: {
+      doctor,
+    },
+  });
+});
+
+// remove esign file and remove the file path from the doctor's document
+exports.removeESign = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+
+  const doctor = await Doctor.findById(id);
+
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  // delete the e-sign file from the images folder
+  deleteFile(doctor.eSign, "images");
+
+  // remove the eSign value from the eSign field
+  doctor.eSign = "";
+  await doctor.save();
+
+  res.status(200).json({
+    success: true,
+    // message: eSignDeleted,
+    message: `Treatment ${successfullyDeleted}`,
+  });
+});
+
+// get esign file from the doctor's document
+exports.getESign = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+
+  const doctor = await Doctor.findById(id);
+
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  const eSign = doctor.eSign;
+
+  res.status(200).json({
+    success: true,
+    data: {
+      eSign,
+    },
+  });
+});
+
+// update esign in doctor's document
+exports.updateESign = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+  const eSign = req.file.filename;
+
+  const doctor = await Doctor.findById(id);
+
+  if (!doctor) {
+    deleteFile(req.file.filename, "images");
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  // delete the old eSign file from the images folder
+  deleteFile(doctor.eSign, "images");
+
+  // add the new eSign value to the eSign field
+  doctor.eSign = eSign;
+  await doctor.save();
+
+  res.status(200).json({
+    success: true,
+    // message: eSignUpdated,
+    message: `E-Signature ${successfullyUpdated}`,
+
+    data: {
+      doctor,
     },
   });
 });

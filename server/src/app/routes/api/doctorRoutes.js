@@ -1,7 +1,7 @@
 // npm packages import
 const express = require("express");
-const multer = require("multer");
-const path = require("path");
+// const multer = require("multer");
+// const path = require("path");
 const { check } = require("express-validator");
 
 // controller functions import
@@ -17,6 +17,12 @@ const {
   addTreatment,
   removeTreatment,
   findDoctorByTreatment,
+  addESign,
+  removeESign,
+  getESign,
+  updateESign,
+  updateDoctor,
+  deleteDoctor,
 } = require("../../controllers/api/doctorController");
 
 // middleware imports
@@ -24,8 +30,9 @@ const {
   checkDuplicateDoctor,
   verifyToken,
   authorizeRole,
-  doctorRegistrationValidator,
+  doctorDataValidator,
   checkDuplicatePmc,
+  singleFileUpload,
 } = require("../../middlewares");
 
 // import utils
@@ -40,20 +47,6 @@ const roles = require("../../utils/constants/ROLES");
 // initializing router
 const router = express.Router();
 
-// configuring multer
-const PATH = path.join(__dirname, "../../../public/images");
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, PATH);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `avatar-${Date.now()}.${file.mimetype.split("/")[1]}`);
-  },
-});
-
-const upload = multer({ storage });
-
 /*****************************ROUTES********************************/
 
 // verify doctor pmc id
@@ -62,7 +55,11 @@ router.post("/pmc/verify", [checkDuplicatePmc], verifyDoctor);
 // register a doctor
 router.post(
   "/register",
-  [upload.single("avatar"), doctorRegistrationValidator, checkDuplicateDoctor],
+  [
+    singleFileUpload("avatar", "images", "avatar"),
+    doctorDataValidator,
+    checkDuplicateDoctor,
+  ],
   register
 );
 
@@ -97,6 +94,12 @@ router.patch("/reset-password", [
   resetPassword,
 ]);
 
+/**************************DOCTOR CRUD OPERATION ROUTES*********************/
+router
+  .route("/")
+  .patch([doctorDataValidator], updateDoctor)
+  .delete(deleteDoctor);
+
 /*******************************DOCTOR's TREATEMENT****************/
 router
   .route("/treatments")
@@ -106,5 +109,13 @@ router
   )
   .delete(removeTreatment)
   .get(findDoctorByTreatment); //find the doctor based on a specific treatment
+
+/***************************DOCTOR's E-SIGN**************************/
+router
+  .route("/e-signs")
+  .post([singleFileUpload("sign", "images", "e-sign")], addESign)
+  .get(getESign)
+  .delete(removeESign)
+  .patch([singleFileUpload("sign", "images", "e-sign")], updateESign);
 
 module.exports = router;

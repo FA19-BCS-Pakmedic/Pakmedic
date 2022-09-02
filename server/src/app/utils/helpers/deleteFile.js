@@ -3,9 +3,9 @@ const path = require("path");
 const { fileDeleteSuccess } = require("../constants/RESPONSEMESSAGES");
 
 // configuring multer
-const PATH = path.join(__dirname, "../../../public/images");
 
-module.exports = (filename) => {
+module.exports = (filename, folderName) => {
+  const PATH = path.join(__dirname, "../../../public", folderName);
   fs.unlink(`${PATH}/${filename}`, (err) => {
     if (err) {
       console.log(err);

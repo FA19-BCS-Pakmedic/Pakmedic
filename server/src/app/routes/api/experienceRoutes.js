@@ -1,7 +1,5 @@
 // importing npm packages
 const express = require("express");
-const multer = require("multer");
-const path = require("path");
 
 // impporting utils
 const roles = require("../../utils/constants/ROLES");
@@ -25,33 +23,18 @@ const {
   fetchAddress,
   authorizeRole,
   verifyToken,
+  singleFileUpload,
 } = require("../../middlewares");
 
-// configuring multer
-const PATH = path.join(__dirname, "../../../public/images");
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, PATH);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `hospital-${Date.now()}.${file.mimetype.split("/")[1]}`);
-  },
-});
-
-const upload = multer({ storage });
-
 /*************** Authorization middle wares *******************************/
-
 router.use(verifyToken);
-// router.use(authorizeRole(roles[0], roles[1]));
 
 /****************************** routes **********************/
 router.post(
   "/",
   [
     authorizeRole(roles[1]),
-    upload.single("image"),
+    singleFileUpload("hospital", "images", "image"),
     fetchAddress,
     fetchHospital,
   ],
