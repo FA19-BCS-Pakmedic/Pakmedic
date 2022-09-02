@@ -130,8 +130,8 @@ exports.updateService = catchAsync(async (req, res, next) => {
   if (!service) {
     return next(new AppError(noExpFound, 404));
   }
-  service.title = title;
-  service.hospital = hospital;
+  // service.title = title;
+  // service.hospital = hospital;
   await service.save();
   res.status(200).json({
     status: "success",
@@ -146,18 +146,29 @@ exports.deleteService = catchAsync(async (req, res, next) => {
   const id = req.params.id;
   const docId = req.decoded.id;
   const service = await Service.findById(id).populate("hospital");
+
+  if (!service) {
+    return next(new AppError(noExpFound, 404));
+  }
+
   const hospitalID = service.hospital._id;
   const addressID = service.hospital.address;
 
   console.log(service);
 
   // remove the experience from the array of doctor document
-  const doctor = await Doctor.findByIdAndUpdate(docId, {
+  await Doctor.findByIdAndUpdate(docId, {
     $pull: { services: service._id },
   });
 
-  // remove hospital
-  await Hospital.findByIdAndDelete(hospitalID);
+  // fetch hospital
+  const hospital = await Hospital.findById(hospitalID);
+
+  // delete the image of hospital
+  deleteFile(hospital.image);
+
+  // delete the hospital
+  hospital.remove();
 
   // remove address
   await Address.findByIdAndDelete(addressID);
@@ -167,9 +178,6 @@ exports.deleteService = catchAsync(async (req, res, next) => {
 
   // add delete file functionality aswell !!!!!!!!!!!!!!!!!
 
-  if (!service) {
-    return next(new AppError(noExpFound, 404));
-  }
   res.status(200).json({
     status: "success",
     data: null,

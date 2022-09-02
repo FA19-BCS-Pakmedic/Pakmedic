@@ -31,6 +31,7 @@ const {
   chatbot,
   hospital,
   experience,
+  service,
 } = require("./app/routes/api");
 
 // Start express app
@@ -88,13 +89,12 @@ app.use((req, res, next) => {
 });
 
 // Api endpoints
-// app.use("/auth", authRoute);
-
 app.use("/api/v1/patients", patient);
 app.use("/api/v1/doctors", doctor);
 app.use("/api/v1/chatbot", chatbot);
 app.use("/api/v1/hospitals", hospital);
 app.use("/api/v1/experiences", experience);
+app.use("/api/v1/services", service);
 
 // any irrelavant end point will hit this and throw error
 app.all("*", (req, res, next) => {

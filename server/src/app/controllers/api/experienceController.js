@@ -149,16 +149,20 @@ exports.deleteExperience = catchAsync(async (req, res, next) => {
     $pull: { experiences: experience._id },
   });
 
-  // remove hospital
-  await Hospital.findByIdAndDelete(hospitalID);
+  // fetch hospital
+  const hospital = await Hospital.findById(hospitalID);
+
+  // delete the image of hospital
+  deleteFile(hospital.image);
+
+  // delete hospital
+  await hospital.remove();
 
   // remove address
   await Address.findByIdAndDelete(addressID);
 
   // remove experience
   await experience.remove();
-
-  // add delete file functionality aswell !!!!!!!!!!!!!!!!!
 
   if (!experience) {
     return next(new AppError(noExpFound, 404));

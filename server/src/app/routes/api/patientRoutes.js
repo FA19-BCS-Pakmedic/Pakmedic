@@ -98,6 +98,6 @@ router.patch("/reset-password", [
 router.use(authorizeRole(ROLES[0]));
 
 // patient routes to get, update users
-router.route("/:id").get(getPatient).patch(updatePatient);
+router.route("/:id").get(getPatient).patch([fetchAddress], updatePatient);
 
 module.exports = router;

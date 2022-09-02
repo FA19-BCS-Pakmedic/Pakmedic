@@ -27,6 +27,9 @@ const {
   passwordUpdateSuccess,
   tokenExpired,
   invalidToken,
+  treatmentAdded,
+  treatmentDeleted,
+  userNotFound,
 } = require("../../utils/constants/RESPONSEMESSAGES");
 
 //importing models
@@ -134,38 +137,6 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 /***********************************PASSWORD RESET FUNCITONALITY ********************************************/
-
-// // method to send a verification token to the patient email (email functionality is yet to be implemented)
-// exports.forgotPassword = catchAsync(async (req, res, next) => {
-//   // checking if there are any errors
-//   const errors = validationResult(req);
-//   if (errors.errors.length > 0) {
-//     return next(new AppError(errors.array()[0].msg, 400));
-//   }
-
-//   const { email } = req.body;
-//   const patient = await Doctor.findOne({ email });
-//   if (!patient) {
-//     return next(new AppError(`patient ${userNotFoundEmail}`, 404));
-//   }
-//   // create reset token and expiry
-//   const resetPasswordToken =
-//     crypto.randomBytes(20).toString("hex") + Date.now();
-//   const resetPasswordExpiry = Date.now() + 600000; // 10 mins
-
-//   // updating the patient data by adding token and expiry
-//   const updatedDoctor = await Doctor.findOneAndUpdate(
-//     { email },
-//     { $set: { resetPasswordToken, resetPasswordExpiry } },
-//     { new: true }
-//   );
-//   console.log(updatedDoctor);
-//   res.status(200).json({
-//     success: true,
-//     resetToken: resetPasswordToken,
-//     message: `${tokenExpiry} 10mins`,
-//   });
-// });
 
 // method to send a verification token to the doctor email (email functionality is yet to be implemented)
 exports.forgotPassword = catchAsync(async (req, res, next) => {
@@ -330,4 +301,68 @@ const socialAuth = catchAsync(async (req, res, next, email, role, password) => {
   // res
   //   .status(200)
   //   .json({ status: "success", message: "user registered successfully" });
+});
+
+/*****************************************CRD OPERATIONS FOR TREATMENTS IN DOCTOR'S PROFILE****************************/
+
+//add a treatment
+exports.addTreatment = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+  const { treatment } = req.body;
+
+  const doctor = await Doctor.findById(id);
+
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  // push the treatement inside the array only if it is unique
+  if (!doctor.treatments.includes(treatment)) {
+    doctor.treatments.push(treatment);
+  }
+  await doctor.save();
+
+  res.status(200).json({
+    success: true,
+    message: treatmentAdded,
+  });
+});
+
+//delete a treatement
+exports.removeTreatment = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+  const { treatment } = req.body;
+
+  const doctor = await Doctor.findById(id);
+
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  doctor.treatments.pull(treatment);
+  await doctor.save();
+
+  res.status(200).json({
+    success: true,
+    message: treatmentDeleted,
+  });
+});
+
+// find a doctor based on treatment name
+exports.findDoctorByTreatment = catchAsync(async (req, res, next) => {
+  const { treatment } = req.body;
+
+  const doctors = await Doctor.find({ treatments: treatment });
+
+  if (!doctors) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    results: doctors.length,
+    data: {
+      doctors,
+    },
+  });
 });

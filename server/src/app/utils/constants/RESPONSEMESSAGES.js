@@ -36,6 +36,7 @@ module.exports = {
   noHospitalsFound: "No hospital/s found",
   noExpFound: "No experience/s found",
   noServiceFound: "No service/s found",
+  containOnlyAlphabets: "Please enter only alphabets",
   // notLoggedIn: "You are not logged in! Please log in to get access.",
 
   // warning messages
@@ -47,4 +48,6 @@ module.exports = {
   fileDeleteSuccess: "File was successfully deleted",
   passwordUpdateSuccess: "Password was successfully updated",
   userRegistered: "was successfully registered",
+  treatmentAdded: "treatement successfully added",
+  treatmentDeleted: "treatment successfully deleted",
 };

@@ -63,10 +63,10 @@ router.get("/", [authorizeRole(roles[2])], getAllServices); //this route is only
 
 router
   .route("/:id")
-  .get(getSpecificDoctorServices)
-  .patch([upload.single("image"), fetchAddress, fetchHospital], updateService)
+  .get(getServiceById)
+  .patch([fetchAddress, fetchHospital], updateService)
   .delete(deleteService); //these routes is accessible to all type of users
 
-router.route("/:id/:docid").get(getServiceById); //this routes is accessible to all type of users
+router.route("/doctors/:id").get(getSpecificDoctorServices); //this routes is accessible to all type of users
 
 module.exports = router;

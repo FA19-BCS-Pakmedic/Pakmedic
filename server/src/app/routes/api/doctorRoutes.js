@@ -14,6 +14,9 @@ const {
   resetPassword,
   facebookLogin,
   googleLogin,
+  addTreatment,
+  removeTreatment,
+  findDoctorByTreatment,
 } = require("../../controllers/api/doctorController");
 
 // middleware imports
@@ -26,11 +29,13 @@ const {
 } = require("../../middlewares");
 
 // import utils
-const { passwordRegex } = require("../../utils/constants/REGEX");
+const { passwordRegex, stringRegex } = require("../../utils/constants/REGEX");
 const {
   invalidEmail,
   invalidPassword,
+  containOnlyAlphabets,
 } = require("../../utils/constants/RESPONSEMESSAGES");
+const roles = require("../../utils/constants/ROLES");
 
 // initializing router
 const router = express.Router();
@@ -83,6 +88,7 @@ router.patch(
 
 // middlewares to verify users
 router.use(verifyToken);
+router.use(authorizeRole(roles[1]));
 
 //reset Password
 router.patch("/reset-password", [
@@ -90,5 +96,15 @@ router.patch("/reset-password", [
   check("password", invalidPassword).matches(passwordRegex),
   resetPassword,
 ]);
+
+/*******************************DOCTOR's TREATEMENT****************/
+router
+  .route("/treatments")
+  .post(
+    [check("treatment", containOnlyAlphabets).matches(stringRegex)],
+    addTreatment
+  )
+  .delete(removeTreatment)
+  .get(findDoctorByTreatment); //find the doctor based on a specific treatment
 
 module.exports = router;

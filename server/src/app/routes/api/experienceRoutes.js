@@ -63,13 +63,9 @@ router.get("/", [authorizeRole(roles[2])], getAllExperiences); //this route is o
 
 router
   .route("/:id")
-  .get(getSpecificDoctorExperiences)
-  .patch(
-    [upload.single("image"), fetchAddress, fetchHospital],
-    updateExperience
-  )
+  .get(getExperienceById)
+  .patch([fetchAddress, fetchHospital], updateExperience)
   .delete(deleteExperience); //these routes is accessible to all type of users
 
-router.route("/:id/:docid").get(getExperienceById); //this routes is accessible to all type of users
-
+router.route("/doctors/:id").get(getSpecificDoctorExperiences); //this routes is accessible to all type of users
 module.exports = router;

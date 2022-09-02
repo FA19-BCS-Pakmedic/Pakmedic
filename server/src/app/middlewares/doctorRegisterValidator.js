@@ -34,7 +34,7 @@ module.exports = catchAsync(async (req, res, next) => {
   const errors = validationResult(req);
   console.log(errors);
   if (errors.errors.length > 0) {
-    deleteFile(req.file.path);
+    deleteFile(req.file.filename);
     return next(new AppError(errors.array()[0].msg, 400));
   }
 
