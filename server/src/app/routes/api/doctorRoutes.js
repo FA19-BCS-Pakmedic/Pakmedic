@@ -33,6 +33,7 @@ const {
   doctorDataValidator,
   checkDuplicatePmc,
   singleFileUpload,
+  deleteDoctorEmbeddedDocs,
 } = require("../../middlewares");
 
 // import utils
@@ -98,7 +99,7 @@ router.patch("/reset-password", [
 router
   .route("/")
   .patch([doctorDataValidator], updateDoctor)
-  .delete(deleteDoctor);
+  .delete([deleteDoctorEmbeddedDocs], deleteDoctor);
 
 /*******************************DOCTOR's TREATEMENT****************/
 router
