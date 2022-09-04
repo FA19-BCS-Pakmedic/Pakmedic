@@ -24,7 +24,7 @@ module.exports = async (recieverEmail, recieverName, htmlContent, subject) => {
     name: mailConf.replyToName,
     email: mailConf.replyToEmail,
   };
-  sendSmtpEmail.headers = { "Some-Custom-Name": "unique-id-1234" };
+  // sendSmtpEmail.headers = { "Some-Custom-Name": "unique-id-1234" };
   //   sendSmtpEmail.params = {
   //     parameter: "My param value",
   //     subject: "New Subject",

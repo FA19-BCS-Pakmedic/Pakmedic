@@ -24,6 +24,7 @@ const {
   updateDoctor,
   deleteDoctor,
 } = require("../../controllers/api/doctorController");
+const { verifyPatient } = require("../../controllers/api/patientController");
 
 // middleware imports
 const {
@@ -63,6 +64,9 @@ router.post(
   ],
   register
 );
+
+// verify user account
+router.get("/verify/:id", verifyDoctor);
 
 // login a doctor
 router.post("/login", login);

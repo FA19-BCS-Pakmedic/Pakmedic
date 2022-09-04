@@ -28,6 +28,7 @@ const {
   incorrectPassword,
   userRegistered,
   userNotRegistered,
+  accountVerified,
 } = require("../../utils/constants/RESPONSEMESSAGES");
 
 //importing models
@@ -37,6 +38,8 @@ const Patient = db.patient;
 // method to sign up patient
 exports.register = catchAsync(async (req, res, next) => {
   req.body.avatar = req.file.filename;
+
+  const isThirdParty = req.body?.isThirdParty;
 
   const {
     email,
@@ -77,6 +80,23 @@ exports.register = catchAsync(async (req, res, next) => {
     resetPasswordExpiry,
     address,
   });
+
+  // if it is a thirdparty login such as google and facebook
+  if (isThirdParty) {
+    //verify the user's account by default
+    patient.isVerified = true;
+  } else {
+    // send a verification mail to user's email
+    sendMail(
+      email,
+      name,
+      getConfCodeEmailTemplate.getVerificationEmailTemplate(
+        patient._id,
+        "patients"
+      ),
+      "Verify your account"
+    );
+  }
 
   const data = await patient.save();
 
@@ -127,7 +147,8 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetPasswordExpiry = Date.now() + 600000; // 10 mins
 
   // getting a custom html template for confirmation code mail
-  const htmlContent = getConfCodeEmailTemplate(resetPasswordToken);
+  const htmlContent =
+    getConfCodeEmailTemplate.getConfirmationCodeTemplate(resetPasswordToken);
   // console.log(htmlContent);
   const subject = "Confirmation Code";
 
@@ -200,6 +221,25 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: passwordUpdateSuccess,
+  });
+});
+
+/******************************************PATIENT ACCOUNT VERIFICATION FUNCTIONALITY*******************************************/
+// verify patient's account
+exports.verifyPatient = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const patient = await Patient.findById(id);
+  if (!patient) {
+    return next(new AppError(`Patient ${userNotFoundID}`, 404));
+  }
+  patient.isVerified = true;
+  await patient.save();
+  res.status(200).json({
+    success: true,
+    message: `Patient ${accountVerified}`,
+    data: {
+      patient,
+    },
   });
 });
 

@@ -15,6 +15,7 @@ const {
   resetPassword,
   googleLogin,
   facebookLogin,
+  verifyPatient,
 } = require("../../controllers/api/patientController");
 
 // import middlewares
@@ -51,6 +52,9 @@ router.post(
   ],
   register
 );
+
+// verify user account
+router.get("/verify/:id", verifyPatient);
 
 // login a patient
 router.post("/login", login);

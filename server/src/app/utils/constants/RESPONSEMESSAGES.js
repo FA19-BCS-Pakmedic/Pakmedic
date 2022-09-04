@@ -48,7 +48,7 @@ module.exports = {
   fileDeleteSuccess: "File was successfully deleted",
   passwordUpdateSuccess: "Password was successfully updated",
   userRegistered: "was successfully registered",
-
+  accountVerified: "account successfully verified",
   successfullyAdded: "successfully added",
   successfullyDeleted: "successfully deleted",
   successfullyUpdated: "successfully updated",

@@ -37,6 +37,7 @@ const {
   successfullyAdded,
   successfullyDeleted,
   successfullyUpdated,
+  accountVerified,
 } = require("../../utils/constants/RESPONSEMESSAGES");
 
 //importing models
@@ -75,7 +76,7 @@ exports.verifyDoctor = catchAsync(async (req, res, next) => {
 // method to register the doctor
 exports.register = catchAsync(async (req, res, next) => {
   req.body.avatar = req.file.filename;
-
+  const isThirdParty = req.body?.isThirdParty;
   ({
     email,
     password,
@@ -113,6 +114,23 @@ exports.register = catchAsync(async (req, res, next) => {
     },
     speciality,
   });
+
+  // if it is a thirdparty login such as google and facebook
+  if (isThirdParty) {
+    //verify the user's account by default
+    doctor.isVerified = true;
+  } else {
+    // send a verification mail to user's email
+    sendMail(
+      email,
+      name,
+      getConfCodeEmailTemplate.getVerificationEmailTemplate(
+        doctor._id,
+        "doctors"
+      ),
+      "Verify your account"
+    );
+  }
 
   const data = await doctor.save();
 
@@ -163,7 +181,8 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetPasswordExpiry = Date.now() + 600000; // 10 mins
 
   // getting a custom html template for confirmation code mail
-  const htmlContent = getConfCodeEmailTemplate(resetPasswordToken);
+  const htmlContent =
+    getConfCodeEmailTemplate.getConfirmationCodeTemplate(resetPasswordToken);
   // console.log(htmlContent);
   const subject = "Confirmation Code";
 
@@ -238,6 +257,25 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   });
 });
 
+/******************************************DOCTOR ACCOUNT VERIFICATION FUNCTIONALITY*******************************************/
+// verify doctors's account
+exports.verifyDoctor = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const doctor = await Doctor.findById(id);
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+  doctor.isVerified = true;
+  await doctor.save();
+  res.status(200).json({
+    success: true,
+    message: `Doctor ${accountVerified}`,
+    data: {
+      doctor,
+    },
+  });
+});
+
 /********************************************THIRD PARTY AUTHENTICATION FUNCTIONALITY  ******************************************/
 //method to login/singup user using google their google account
 exports.googleLogin = catchAsync(async (req, res, next) => {
@@ -278,7 +316,7 @@ exports.facebookLogin = catchAsync(async (req, res, next) => {
 
 // social login/signup method that is common for both google and facebook endpoints
 const socialAuth = catchAsync(async (req, res, next, email, role, password) => {
-  const user = await Patient.findOne({ email });
+  const user = await Doctor.findOne({ email });
 
   // if client is already registered with the google account we will directly log them in and send an access token to the client
   // if (user) {
@@ -286,7 +324,7 @@ const socialAuth = catchAsync(async (req, res, next, email, role, password) => {
   // }
 
   if (!user) {
-    return next(new AppError(`Patient ${userNotFoundEmail}`, 404));
+    return next(new AppError(`Doctor ${userNotFoundEmail}`, 404));
   }
 
   createSendToken(user, 200, req, res);
