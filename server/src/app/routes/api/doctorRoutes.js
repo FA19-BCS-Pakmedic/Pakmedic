@@ -23,6 +23,13 @@ const {
   updateESign,
   updateDoctor,
   deleteDoctor,
+  updateProfileImage,
+  findDoctorById,
+  findDoctorsByHospital,
+  removeProfileImage,
+  findDoctors,
+  addUpdateAbout,
+  removeAbout,
 } = require("../../controllers/api/doctorController");
 const { verifyPatient } = require("../../controllers/api/patientController");
 
@@ -88,8 +95,16 @@ router.patch(
   resetForgottenPassword
 );
 
+// find doctors by hospital
+router.get("/hospitals", findDoctorsByHospital);
+
 // middlewares to verify users
 router.use(verifyToken);
+
+// find doctors
+router.get("/:id", verifyToken, findDoctorById);
+router.get("/", findDoctors);
+
 router.use(authorizeRole(roles[1]));
 
 //reset Password
@@ -100,10 +115,23 @@ router.patch("/reset-password", [
 ]);
 
 /**************************DOCTOR CRUD OPERATION ROUTES*********************/
+// update and delete profile routes
 router
   .route("/")
   .patch([doctorDataValidator], updateDoctor)
   .delete([deleteDoctorEmbeddedDocs], deleteDoctor);
+
+// update profile image route
+// router.patch(
+//   "/avatar",
+//   [singleFileUpload("avatar", "images", "avatar")],
+//   updateProfileImage
+// );
+
+router
+  .route("/avatar")
+  .patch([singleFileUpload("avatar", "images", "avatar")], updateProfileImage)
+  .delete(removeProfileImage);
 
 /*******************************DOCTOR's TREATEMENT****************/
 router
@@ -122,5 +150,12 @@ router
   .get(getESign)
   .delete(removeESign)
   .patch([singleFileUpload("sign", "images", "e-sign")], updateESign);
+
+/***************************DOCTOR's ABOUT**************************/
+router
+  .route("/about")
+  .post(addUpdateAbout)
+  .patch(addUpdateAbout)
+  .delete(removeAbout);
 
 module.exports = router;

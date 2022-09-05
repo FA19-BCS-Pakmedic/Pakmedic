@@ -37,6 +37,7 @@ module.exports = {
   noExpFound: "No experience/s found",
   noServiceFound: "No service/s found",
   containOnlyAlphabets: "Please enter only alphabets",
+  noDoctorsInHospital: "No doctors found in this hospital",
   // notLoggedIn: "You are not logged in! Please log in to get access.",
 
   // warning messages
@@ -52,4 +53,6 @@ module.exports = {
   successfullyAdded: "successfully added",
   successfullyDeleted: "successfully deleted",
   successfullyUpdated: "successfully updated",
+  profileImageUpdated: "profile image was successfully updated",
+  profileImageRemoved: "profile image was successfully removed",
 };

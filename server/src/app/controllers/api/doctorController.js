@@ -38,6 +38,9 @@ const {
   successfullyDeleted,
   successfullyUpdated,
   accountVerified,
+  profileImageUpdated,
+  noDoctorsInHospital,
+  profileImageRemoved,
 } = require("../../utils/constants/RESPONSEMESSAGES");
 
 //importing models
@@ -351,12 +354,6 @@ const socialAuth = catchAsync(async (req, res, next, email, role, password) => {
 /***************************DOCTOR UPDATION AND DELETION OPERATIONS**********************************/
 // method to update doctor details
 exports.updateDoctor = catchAsync(async (req, res, next) => {
-  // // checking if there are any errors
-  // const errors = validationResult(req);
-  // if (errors.errors.length > 0) {
-  //   return next(new AppError(errors.array()[0].msg, 400));
-  // }
-
   const id = req.decoded.id;
 
   const data = req.body;
@@ -409,6 +406,166 @@ exports.deleteDoctor = catchAsync(async (req, res, next) => {
   });
 });
 
+//search doctor by name, location, speciality, and treatments
+exports.findDoctors = catchAsync(async (req, res, next) => {
+  const { keyword } = req.body;
+  const doctors = await Doctor.find({
+    $or: [
+      { name: { $regex: keyword, $options: "i" } },
+      { location: { $regex: keyword, $options: "i" } },
+      { speciality: { $regex: keyword, $options: "i" } },
+      { treatments: { $regex: keyword, $options: "i" } },
+    ],
+  });
+
+  if (!doctors.length > 0) {
+    return next(new AppError(`Doctors ${userNotFound}`, 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    // message: `Doctor ${successfullyFetched}`,
+    data: {
+      doctors,
+    },
+  });
+});
+
+// update doctor's profile image by deleting the old and adding the new
+exports.updateProfileImage = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+
+  const doctor = await Doctor.findById(id);
+
+  // checking if the doctor exists
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  // deleting the old profile image
+  if (doctor.avatar) {
+    deleteFile(doctor.avatar, "images");
+  }
+
+  // updating the profile image
+  doctor.avatar = req.file.filename;
+  await doctor.save();
+
+  res.status(200).json({
+    success: true,
+    message: `Doctor ${profileImageUpdated}`,
+    data: {
+      doctor,
+    },
+  });
+});
+
+//remove doctor's profile image
+exports.removeProfileImage = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+  const doctor = await Doctor.findById(id);
+
+  // checking if the doctor exists
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  // deleting the old profile image
+  if (doctor.avatar) {
+    deleteFile(doctor.avatar, "images");
+  }
+
+  // updating the profile image
+  doctor.avatar = "defaultAvatar.jpg"; //the null value will be replaced by a default image
+
+  await doctor.save();
+
+  res.status(200).json({
+    success: true,
+    message: `Doctor ${profileImageRemoved}`,
+    data: {
+      doctor,
+    },
+  });
+});
+
+//method to fetch the doctor by id
+exports.findDoctorById = catchAsync(async (req, res, next) => {
+  const id = req.params.id;
+
+  const doctor = await Doctor.findById(id)
+    .populate({
+      path: "services",
+      model: "Service",
+      populate: {
+        path: "hospital",
+        model: "Hospital",
+        populate: { path: "address", model: "Address" },
+      },
+    })
+    .populate({
+      path: "experiences",
+      model: "Experience",
+      populate: {
+        path: "hospital",
+        model: "Hospital",
+        populate: { path: "address", model: "Address" },
+      },
+    });
+
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      doctor,
+    },
+  });
+});
+
+// search by hospital
+exports.findDoctorsByHospital = catchAsync(async (req, res, next) => {
+  const findHospital = req.body?.hospital;
+
+  // fetch all doctors
+  let filteredDoctors = await Doctor.find().populate({
+    path: "services",
+    model: "Service",
+    populate: {
+      path: "hospital",
+      model: "Hospital",
+      match: { name: { $regex: findHospital, $options: "i" } },
+    },
+  });
+
+  console.log(filteredDoctors);
+
+  filteredDoctors = filteredDoctors.filter((doctor) => {
+    const isHospitalWorker = doctor.services.some((service) => {
+      return service.hospital?.name;
+      // console.log(service);
+    });
+
+    if (isHospitalWorker) {
+      return doctor;
+    }
+  });
+  if (!filteredDoctors.length > 0) {
+    return next(new AppError(noDoctorsInHospital, 404));
+  }
+
+  console.log(filteredDoctors);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      filteredDoctors,
+    },
+  });
+});
+
 /*****************************************TREATMENTS FUNCTIONS****************************/
 
 //add a treatment
@@ -454,6 +611,9 @@ exports.removeTreatment = catchAsync(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: `Treatment ${successfullyDeleted}`,
+    data: {
+      doctor,
+    },
   });
 });
 
@@ -524,6 +684,9 @@ exports.removeESign = catchAsync(async (req, res, next) => {
     success: true,
     // message: eSignDeleted,
     message: `Treatment ${successfullyDeleted}`,
+    data: {
+      doctor,
+    },
   });
 });
 
@@ -570,7 +733,52 @@ exports.updateESign = catchAsync(async (req, res, next) => {
     success: true,
     // message: eSignUpdated,
     message: `E-Signature ${successfullyUpdated}`,
+    data: {
+      doctor,
+    },
+  });
+});
 
+/****************************ABOUT ME OPERATIONS***********************/
+// add about
+exports.addUpdateAbout = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+  const { about } = req.body;
+
+  const doctor = await Doctor.findById(id);
+
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  doctor.about = about;
+  await doctor.save();
+
+  res.status(200).json({
+    success: true,
+    message: `About ${successfullyAdded}`,
+    data: {
+      doctor,
+    },
+  });
+});
+
+// remove About
+exports.removeAbout = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+
+  const doctor = await Doctor.findById(id);
+
+  if (!doctor) {
+    return next(new AppError(`Doctor ${userNotFound}`, 404));
+  }
+
+  doctor.about = "";
+  await doctor.save();
+
+  res.status(200).json({
+    success: true,
+    message: `About ${successfullyDeleted}`,
     data: {
       doctor,
     },
