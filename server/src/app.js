@@ -34,6 +34,7 @@ const {
   service,
   family,
   scan,
+  report,
 } = require("./app/routes/api");
 
 // Start express app
@@ -99,6 +100,7 @@ app.use("/api/v1/experiences", experience);
 app.use("/api/v1/services", service);
 app.use("/api/v1/families", family);
 app.use("/api/v1/scans", scan);
+app.use("/api/v1/reports", report);
 
 // any irrelavant end point will hit this and throw error
 app.all("*", (req, res, next) => {

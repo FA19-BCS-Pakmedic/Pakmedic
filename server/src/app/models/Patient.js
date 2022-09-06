@@ -121,10 +121,13 @@ const patientSchema = mongoose.Schema({
     //replace with prescriptions refernce
     type: [String],
   },
-  reports: {
+  reports: [
     //replace with reports refernce
-    type: [String],
-  },
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Report",
+    },
+  ],
 
   //account verification
   isVerified: {

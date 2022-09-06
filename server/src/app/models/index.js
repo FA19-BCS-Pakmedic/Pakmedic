@@ -14,4 +14,5 @@ db.experience = require("./Experience");
 db.service = require("./Service");
 db.family = require("./Family");
 db.scan = require("./Scan");
+db.report = require("./Report");
 module.exports = db;

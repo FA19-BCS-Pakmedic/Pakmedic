@@ -5,14 +5,14 @@ const Scan = require("../../models").scan;
 const Patient = require("../../models").patient;
 const Family = require("../../models").family;
 
+// import utils
+const { catchAsync, AppError, deleteFile } = require("../../utils/helpers");
 const {
   userNotFound,
   successfullyAdded,
   successfullyUpdated,
   successfullyDeleted,
 } = require("../../utils/constants/RESPONSEMESSAGES");
-// import utils
-const { catchAsync, AppError, deleteFile } = require("../../utils/helpers");
 
 // create scan
 exports.createScan = catchAsync(async (req, res, next) => {
@@ -59,7 +59,6 @@ exports.createScan = catchAsync(async (req, res, next) => {
     console.log(familyId);
 
     // find the family member
-    // const family = await Family.findOne().where({ id: familyId });
     const family = await Family.findById(familyId);
 
     console.log(family);
