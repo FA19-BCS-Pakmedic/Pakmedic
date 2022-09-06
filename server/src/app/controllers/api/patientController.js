@@ -29,6 +29,10 @@ const {
   userRegistered,
   userNotRegistered,
   accountVerified,
+  successfullyDeleted,
+  userNotFound,
+  profileImageRemoved,
+  profileImageUpdated,
 } = require("../../utils/constants/RESPONSEMESSAGES");
 
 //importing models
@@ -317,6 +321,7 @@ const socialAuth = catchAsync(async (req, res, next, email, role, password) => {
 
 /**************************CRUD OPERATIONS****************************/
 
+//update the patient data
 exports.updatePatient = catchAsync(async (req, res, next) => {
   id = req.decoded.id;
   data = req.body;
@@ -339,6 +344,7 @@ exports.updatePatient = catchAsync(async (req, res, next) => {
   });
 });
 
+// get the specific patient data
 exports.getPatient = catchAsync(async (req, res, next) => {
   const id = req.params.id;
   const patient = await Patient.findById(id).select("+password");
@@ -348,5 +354,81 @@ exports.getPatient = catchAsync(async (req, res, next) => {
   res.status(200).json({
     success: true,
     data: patient,
+  });
+});
+
+// delete the patient
+exports.deletePatient = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+
+  const patient = await Patient.findById(id);
+
+  if (!patient) {
+    return next(new AppError(`Patient ${userNotFoundID}`, 404));
+  }
+
+  await patient.remove();
+
+  res.status(200).json({
+    success: true,
+    message: `Patient ${successfullyDeleted}`,
+  });
+});
+
+// update patient's profile image by deleting the old and adding the new
+exports.updateProfileImage = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+
+  const patient = await Patient.findById(id);
+
+  // checking if the patient exists
+  if (!patient) {
+    return next(new AppError(`Patient ${userNotFound}`, 404));
+  }
+
+  // deleting the old profile image
+  if (patient.avatar) {
+    deleteFile(patient.avatar, "images");
+  }
+
+  // updating the profile image
+  patient.avatar = req.file.filename;
+  await patient.save();
+
+  res.status(200).json({
+    success: true,
+    message: `Patient ${profileImageUpdated}`,
+    data: {
+      patient,
+    },
+  });
+});
+
+//remove patient's profile image
+exports.removeProfileImage = catchAsync(async (req, res, next) => {
+  const id = req.decoded.id;
+  const patient = await Patient.findById(id);
+
+  // checking if the patient exists
+  if (!patient) {
+    return next(new AppError(`Patient ${userNotFound}`, 404));
+  }
+
+  // deleting the old profile image
+  if (patient.avatar) {
+    deleteFile(patient.avatar, "images");
+  }
+
+  // updating the profile image
+  patient.avatar = "defaultAvatar.jpg"; //the null value will be replaced by a default image
+
+  await patient.save();
+
+  res.status(200).json({
+    success: true,
+    message: `Patient ${profileImageRemoved}`,
+    data: {
+      patient,
+    },
   });
 });

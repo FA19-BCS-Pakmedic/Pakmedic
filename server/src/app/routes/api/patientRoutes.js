@@ -16,6 +16,9 @@ const {
   googleLogin,
   facebookLogin,
   verifyPatient,
+  deletePatient,
+  removeProfileImage,
+  updateProfileImage,
 } = require("../../controllers/api/patientController");
 
 // import middlewares
@@ -35,6 +38,7 @@ const {
   invalidEmail,
   invalidPassword,
 } = require("../../utils/constants/RESPONSEMESSAGES");
+const deletePatientEmbeddedDocs = require("../../middlewares/deletePatientEmbeddedDocs");
 
 // initializing router
 const router = express.Router();
@@ -89,6 +93,15 @@ router.patch("/reset-password", [
 router.use(authorizeRole(ROLES[0]));
 
 // patient routes to get, update users
-router.route("/:id").get(getPatient).patch([fetchAddress], updatePatient);
+router.route("/:id").get(getPatient);
 
+router
+  .route("/avatar")
+  .patch([singleFileUpload("avatar", "images", "avatar")], updateProfileImage)
+  .delete(removeProfileImage);
+
+router
+  .route("/")
+  .patch([patientRegistrationValidator, fetchAddress], updatePatient)
+  .delete([deletePatientEmbeddedDocs], deletePatient);
 module.exports = router;
