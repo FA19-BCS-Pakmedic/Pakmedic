@@ -2,33 +2,36 @@ const mongoose = require("mongoose");
 
 const ROLES = require("../utils/constants/ROLES");
 const GENDERS = require("../utils/constants/GENDERS");
-const BLOODTYPES = require("../utils/constants/BLOODTYPES");
 const { requiredError } = require("../utils/constants/RESPONSEMESSAGES");
 
-const biologicalSchema = mongoose.Schema({
-  height: {
-    type: Number,
-  },
-  weight: {
-    type: Number,
-  },
-  bloodType: {
-    type: String,
-    enum: Object.values(BLOODTYPES),
-  },
-});
+// nested schemas import
+const biologicalSchema = require("./NestedSchemas/BiologicalData")(mongoose);
+const medicalSchema = require("./NestedSchemas/MedicalData")(mongoose);
 
-const medicalSchema = mongoose.Schema({
-  allergies: {
-    type: [String],
-  },
-  surgeries: {
-    type: [String],
-  },
-  geneticDiseases: {
-    type: [String],
-  },
-});
+// const biologicalSchema = mongoose.Schema({
+//   height: {
+//     type: Number,
+//   },
+//   weight: {
+//     type: Number,
+//   },
+//   bloodType: {
+//     type: String,
+//     enum: Object.values(BLOODTYPES),
+//   },
+// });
+
+// const medicalSchema = mongoose.Schema({
+//   allergies: {
+//     type: [String],
+//   },
+//   surgeries: {
+//     type: [String],
+//   },
+//   geneticDiseases: {
+//     type: [String],
+//   },
+// });
 
 const patientSchema = mongoose.Schema({
   //authentication data
@@ -100,16 +103,20 @@ const patientSchema = mongoose.Schema({
     //replace with reminder reference
     type: [String],
   },
-  familyMembers: {
-    //replace with family refernce
-    type: [String],
-  },
+  familyMembers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Family",
+    },
+  ],
 
   // patient EHRs
-  scans: {
-    //replace with scans refernce
-    type: [String],
-  },
+  scans: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Scan",
+    },
+  ],
   prescriptions: {
     //replace with prescriptions refernce
     type: [String],

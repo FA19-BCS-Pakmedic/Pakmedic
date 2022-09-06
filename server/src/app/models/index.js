@@ -12,4 +12,6 @@ db.address = require("./Address");
 db.hospital = require("./Hospital");
 db.experience = require("./Experience");
 db.service = require("./Service");
+db.family = require("./Family");
+db.scan = require("./Scan");
 module.exports = db;

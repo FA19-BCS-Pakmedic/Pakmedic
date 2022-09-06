@@ -7,4 +7,6 @@ routers.chatbot = require("./chatbotRoutes");
 routers.hospital = require("./hospitalRoutes");
 routers.experience = require("./experienceRoutes");
 routers.service = require("./serviceRoutes");
+routers.family = require("./familyRoutes");
+routers.scan = require("./scanRoutes");
 module.exports = routers;

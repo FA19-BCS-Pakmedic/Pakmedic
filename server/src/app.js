@@ -32,6 +32,8 @@ const {
   hospital,
   experience,
   service,
+  family,
+  scan,
 } = require("./app/routes/api");
 
 // Start express app
@@ -95,6 +97,8 @@ app.use("/api/v1/chatbot", chatbot);
 app.use("/api/v1/hospitals", hospital);
 app.use("/api/v1/experiences", experience);
 app.use("/api/v1/services", service);
+app.use("/api/v1/families", family);
+app.use("/api/v1/scans", scan);
 
 // any irrelavant end point will hit this and throw error
 app.all("*", (req, res, next) => {

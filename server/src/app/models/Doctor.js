@@ -1,42 +1,13 @@
 const mongoose = require("mongoose");
 
+// importing utils
 const CITIES = require("../utils/constants/CITIES");
 const ROLES = require("../utils/constants/ROLES");
 const GENDERS = require("../utils/constants/GENDERS");
 const { requiredError } = require("../utils/constants/RESPONSEMESSAGES");
 
-const pmcSchema = mongoose.Schema({
-  id: {
-    type: String,
-    required: [true, `${requiredError} pmcID`],
-  },
-  qualifications: {
-    //this will be replaced with the reference to another collection
-    type: [
-      {
-        speciality: String,
-        degree: String,
-        university: String,
-        passingYear: String,
-      },
-    ],
-    required: [true, `${requiredError} qualifications`],
-  },
-  issueDate: {
-    type: Date,
-    required: [true, `${requiredError} issueDate`],
-    default: Date.now(),
-  },
-  expiryDate: {
-    type: Date,
-    required: [true, `${requiredError} expiryDate`],
-    default: Date.now(),
-  },
-  status: {
-    type: String,
-    required: [true, `${requiredError} status`],
-  },
-});
+// import nested schemas
+const pmcSchema = require("./NestedSchemas/PmcData")(mongoose);
 
 const doctorSchema = mongoose.Schema({
   //authentication data
