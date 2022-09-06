@@ -10,6 +10,7 @@ const {
   successfullyAdded,
   userNotFound,
   successfullyUpdated,
+  successfullyDeleted,
 } = require("../../utils/constants/RESPONSEMESSAGES");
 
 // add a family member
@@ -115,5 +116,32 @@ exports.updateFamilyMember = catchAsync(async (req, res, next) => {
     data: {
       family,
     },
+  });
+});
+
+// delete family member
+exports.deleteFamilyMember = catchAsync(async (req, res, next) => {
+  // fetch logged in patient id
+  const id = req.decoded.id;
+
+  // get the family member id
+  const familyId = req.params.id;
+
+  // find the logged in patient and remove the family member id from it
+  const patient = await Patient.findByIdAndUpdate(id, {
+    $pull: { familyMembers: familyId },
+  });
+
+  // check if the patient exists
+  if (!patient) {
+    return next(new AppError(`patient ${userNotFound}`, 404));
+  }
+
+  // delete the family member
+  await Family.findByIdAndDelete(familyId);
+
+  res.status(200).json({
+    status: "success",
+    message: `Family member ${successfullyDeleted}`,
   });
 });

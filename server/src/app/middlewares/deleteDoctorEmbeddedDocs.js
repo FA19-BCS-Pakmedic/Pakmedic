@@ -45,7 +45,7 @@ module.exports = catchAsync(async (req, res, next) => {
 });
 
 // function will work for both experience and service model
-const removeEmbeddedFields = (data) => {
+const removeEmbeddedFields = async (data) => {
   try {
     data.forEach(async (item) => {
       // delete the image of the hospital

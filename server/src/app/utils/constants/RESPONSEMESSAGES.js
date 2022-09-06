@@ -36,6 +36,7 @@ module.exports = {
   noHospitalsFound: "No hospital/s found",
   noExpFound: "No experience/s found",
   noServiceFound: "No service/s found",
+  noReportsFound: "No report/s found",
   containOnlyAlphabets: "Please enter only alphabets",
   noDoctorsInHospital: "No doctors found in this hospital",
   // notLoggedIn: "You are not logged in! Please log in to get access.",

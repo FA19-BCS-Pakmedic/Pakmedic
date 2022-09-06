@@ -12,31 +12,21 @@ const {
   successfullyAdded,
   successfullyUpdated,
   successfullyDeleted,
+  noReportsFound,
 } = require("../../utils/constants/RESPONSEMESSAGES");
+const patientRegisterValidator = require("../../middlewares/patientRegisterValidator");
 
 // create report
 exports.createReport = catchAsync(async (req, res, next) => {
-  //get the logged in patient id
-  const id = req.decoded.id;
-
   //   check if the report is for the family member of the patient
   let isFamilyReport = req.body?.isFamilyReport;
+  isFamilyReport = isFamilyReport === "true";
 
   //   extract the saved file name from req and store it in the body
   req.body.image = req.file.filename;
 
   //   extract the data from the body
   const { title, date, symptoms, lab, image } = req.body;
-
-  //   find the patient based on id
-  const patient = await Patient.findById(id);
-
-  //   if patient doesn't exist
-  if (!patient) {
-    return next(new AppError(`Patient ${userNotFound}`, 404));
-  }
-
-  isFamilyReport = isFamilyReport === "true";
 
   //   create a report object
   const report = new Report({
@@ -51,24 +41,14 @@ exports.createReport = catchAsync(async (req, res, next) => {
   //   store the report object
   await report.save();
 
-  //   push the object id of the saved report to the patient document
-  patient.reports.push(report._id);
-
-  await patient.save();
-
   //   if the report is for the family member
   if (isFamilyReport) {
     // extract the family member id
     const familyId = req.body.familyId;
 
-    // console.log(typeof isFamilyReport);
-
-    console.log(familyId);
-
     //   find the family member based on id
     const family = await Family.findById(familyId);
 
-    console.log(family);
     //  if family member doesn't exist
     if (!family) {
       return next(new AppError(`Family member ${userNotFound}`, 404));
@@ -78,6 +58,24 @@ exports.createReport = catchAsync(async (req, res, next) => {
     family.reports.push(report._id);
 
     await family.save();
+  }
+  // if it is not a report of the family member then push the report to the patient document
+  else {
+    //get the logged in patient id
+    const id = req.decoded.id;
+
+    //   find the patient based on id
+    const patient = await Patient.findById(id);
+
+    //   if patient doesn't exist
+    if (!patient) {
+      return next(new AppError(`Patient ${userNotFound}`, 404));
+    }
+
+    //   push the object id of the saved report to the patient document
+    patient.reports.push(report._id);
+
+    await patient.save();
   }
 
   res.status(201).json({
@@ -99,7 +97,7 @@ exports.getReportById = catchAsync(async (req, res, next) => {
 
   // if report doesn't exist
   if (!report) {
-    return next(new AppError(`Report ${userNotFound}`, 404));
+    return next(new AppError(noReportsFound, 404));
   }
 
   res.status(200).json({
@@ -116,21 +114,40 @@ exports.getReportsByPatientId = catchAsync(async (req, res, next) => {
   const id = req.decoded?.id || req.params?.id;
 
   // find the patient
-  const patient = await Patient.findById(id).populate("reports");
+  const patient = await Patient.findById(id)
+    .populate("reports")
+    .populate({
+      path: "familyMembers",
+      model: "Family",
+      populate: { path: "reports", model: "Report" },
+    });
 
   // if patient doesn't exist
   if (!patient) {
     return next(new AppError(`Patient ${userNotFound}`, 404));
   }
 
+  //  extract the family reports from the embedded family documents
+  const familyReports = patient.familyMembers.map((family) => {
+    return family.reports;
+  });
+
+  //  flatten the array
+  const reports = patient.reports.concat(...familyReports);
+
+  if (!reports.length > 0) {
+    return next(new AppError(noReportsFound, 404));
+  }
+
   res.status(200).json({
     status: "success",
     data: {
-      reports: patient.reports,
+      reports,
     },
   });
 });
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!! THIS METHOD WILL BE REMOVED SINCE IT IS NOT NEEDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 exports.getReportsOfAllFamilyMembers = catchAsync(async (req, res, next) => {
   // get the patient id
   const id = req.decoded?.id || req.params?.id;
@@ -150,14 +167,18 @@ exports.getReportsOfAllFamilyMembers = catchAsync(async (req, res, next) => {
     return next(new AppError(`Patient ${userNotFound}`, 404));
   }
 
-  const familyReports = patient.familyMembers.map((familyMember) => {
+  const reports = patient.familyMembers.map((familyMember) => {
     return familyMember.reports;
   });
+
+  if (!reports.length > 0) {
+    return next(new AppError(noReportsFound, 404));
+  }
 
   res.status(200).json({
     status: "success",
     data: {
-      reports: familyReports,
+      reports,
     },
   });
 });
@@ -175,10 +196,16 @@ exports.getReportsByFamilyId = catchAsync(async (req, res, next) => {
     return next(new AppError(`Family member ${userNotFound}`, 404));
   }
 
+  const reports = family.reports;
+
+  if (!reports.length > 0) {
+    return next(new AppError(noReportsFound, 404));
+  }
+
   res.status(200).json({
     status: "success",
     data: {
-      reports: family.reports,
+      reports,
     },
   });
 });
@@ -215,7 +242,6 @@ exports.updateReport = catchAsync(async (req, res, next) => {
   });
 });
 
-
 //selective file update out of the multiple files issue#43
 
 // delete the report along with its id in the patient's collection and in the family member's collection
@@ -226,29 +252,8 @@ exports.deleteReport = catchAsync(async (req, res, next) => {
   // get report id
   const reportId = req.params.id;
 
-  //   check if the report is a family report
-
-  // find the patient
-  const patient = await Patient.findById(id);
-  //   .populate({
-  //     path: "familyMembers",
-  //     model: "Family",
-  //     populate: {
-  //       path: "reports",
-  //       model: "Report",
-  //     },
-  //   });
-
-  //   console.log(patient);
-
-  // if patient doesn't exist
-  if (!patient) {
-    return next(new AppError(`Patient ${userNotFound}`, 404));
-  }
-
   // find the report
   const report = await Report.findById(reportId);
-  //   console.log(report);
 
   // if report doesn't exist
   if (!report) {
@@ -261,23 +266,32 @@ exports.deleteReport = catchAsync(async (req, res, next) => {
   //delete the report
   await report.remove();
 
-  // delete the report id from the patient's collection
-  patient.reports = patient.reports.filter((report) => report.toString() !== reportId);
-
-  await patient.save();
-
   // if the report is for the family member
   if (report.isFamilyReport) {
-    patient.familyMembers.map(async (familyId) => {
-      const familyMember = await Family.findById(familyId);
-      console.log("Family Member", familyMember);
-      familyMember.reports = familyMember.reports.filter((report) => {
-        console.log("family Report", report.toString());
-        return report.toString() !== reportId;
+    // find the patient
+    const patient = await Patient.findById(id);
+
+    // if patient doesn't exist
+    if (!patient) {
+      return next(new AppError(`Patient ${userNotFound}`, 404));
+    }
+
+    // fetch the family member array
+    const familyMembers = patient.familyMembers;
+
+    // find the family members and remove the report id if it is in the reports array
+    familyMembers.map(async (familyId) => {
+      await Family.findByIdAndUpdate(familyId, {
+        $pull: { reports: reportId },
       });
-      await familyMember.save();
     });
-    console.log("yes this is a family report");
+  }
+  // if the report is for the patient
+  else {
+    // find the patient and remove the report id from the patient document
+    await Patient.findByIdAndUpdate(id, {
+      $pull: { reports: reportId },
+    });
   }
 
   res.status(200).json({

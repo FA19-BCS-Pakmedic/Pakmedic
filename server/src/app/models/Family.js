@@ -42,6 +42,10 @@ const FamilySchema = mongoose.Schema({
   ],
   reports: [
     //this will be replaced with reports embedded doc
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Report",
+    },
   ],
 });
 

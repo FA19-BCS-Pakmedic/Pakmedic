@@ -1,9 +1,9 @@
 // import npm packages
 
 // import models
-const Scan = require("../../models").scan;
 const Patient = require("../../models").patient;
 const Family = require("../../models").family;
+const Scan = require("../../models").scan;
 
 // import utils
 const { catchAsync, AppError, deleteFile } = require("../../utils/helpers");
@@ -12,56 +12,42 @@ const {
   successfullyAdded,
   successfullyUpdated,
   successfullyDeleted,
+  noScansFound,
 } = require("../../utils/constants/RESPONSEMESSAGES");
 
 // create scan
 exports.createScan = catchAsync(async (req, res, next) => {
-  //get the logged in patient id
-  const id = req.decoded.id;
-
   //   check if the scan is for the family member of the patient
   let isFamilyScan = req.body?.isFamilyScan;
+  isFamilyScan = isFamilyScan === "true";
 
   //   extract the saved file name from req and store it in the body
   req.body.image = req.file.filename;
 
   //   extract the data from the body
-  const { title, date, image } = req.body;
-
-  //   find the patient based on id
-  const patient = await Patient.findById(id);
-
-  //   if patient doesn't exist
-  if (!patient) {
-    return next(new AppError(`Patient ${userNotFound}`, 404));
-  }
-
-  isFamilyScan = isFamilyScan === "true";
+  const { title, date, symptoms, lab, image } = req.body;
 
   //   create a scan object
-  const scan = new Scan({ title, date, image, isFamilyScan });
+  const scan = new Scan({
+    title,
+    date,
+    symptoms,
+    lab,
+    image,
+    isFamilyScan,
+  });
 
   //   store the scan object
   await scan.save();
-
-  //   push the object id of the saved scan to the patient document
-  patient.scans.push(scan._id);
-
-  await patient.save();
 
   //   if the scan is for the family member
   if (isFamilyScan) {
     // extract the family member id
     const familyId = req.body.familyId;
 
-    // console.log(typeof isFamilyScan);
-
-    console.log(familyId);
-
-    // find the family member
+    //   find the family member based on id
     const family = await Family.findById(familyId);
 
-    console.log(family);
     //  if family member doesn't exist
     if (!family) {
       return next(new AppError(`Family member ${userNotFound}`, 404));
@@ -71,6 +57,24 @@ exports.createScan = catchAsync(async (req, res, next) => {
     family.scans.push(scan._id);
 
     await family.save();
+  }
+  // if it is not a scan of the family member then push the scan to the patient document
+  else {
+    //get the logged in patient id
+    const id = req.decoded.id;
+
+    //   find the patient based on id
+    const patient = await Patient.findById(id);
+
+    //   if patient doesn't exist
+    if (!patient) {
+      return next(new AppError(`Patient ${userNotFound}`, 404));
+    }
+
+    //   push the object id of the saved scan to the patient document
+    patient.scans.push(scan._id);
+
+    await patient.save();
   }
 
   res.status(201).json({
@@ -92,7 +96,7 @@ exports.getScanById = catchAsync(async (req, res, next) => {
 
   // if scan doesn't exist
   if (!scan) {
-    return next(new AppError(`Scan ${userNotFound}`, 404));
+    return next(new AppError(noScansFound, 404));
   }
 
   res.status(200).json({
@@ -109,21 +113,40 @@ exports.getScansByPatientId = catchAsync(async (req, res, next) => {
   const id = req.decoded?.id || req.params?.id;
 
   // find the patient
-  const patient = await Patient.findById(id).populate("scans");
+  const patient = await Patient.findById(id)
+    .populate("scans")
+    .populate({
+      path: "familyMembers",
+      model: "Family",
+      populate: { path: "scans", model: "Scan" },
+    });
 
   // if patient doesn't exist
   if (!patient) {
     return next(new AppError(`Patient ${userNotFound}`, 404));
   }
 
+  //  extract the family scans from the embedded family documents
+  const familyScans = patient.familyMembers.map((family) => {
+    return family.scans;
+  });
+
+  //  flatten the array
+  const scans = patient.scans.concat(...familyScans);
+
+  if (!scans.length > 0) {
+    return next(new AppError(noScansFound, 404));
+  }
+
   res.status(200).json({
     status: "success",
     data: {
-      scans: patient.scans,
+      scans,
     },
   });
 });
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!! THIS METHOD WILL BE REMOVED SINCE IT IS NOT NEEDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 exports.getScansOfAllFamilyMembers = catchAsync(async (req, res, next) => {
   // get the patient id
   const id = req.decoded?.id || req.params?.id;
@@ -143,14 +166,18 @@ exports.getScansOfAllFamilyMembers = catchAsync(async (req, res, next) => {
     return next(new AppError(`Patient ${userNotFound}`, 404));
   }
 
-  const familyScans = patient.familyMembers.map((familyMember) => {
+  const scans = patient.familyMembers.map((familyMember) => {
     return familyMember.scans;
   });
+
+  if (!scans.length > 0) {
+    return next(new AppError(noScansFound, 404));
+  }
 
   res.status(200).json({
     status: "success",
     data: {
-      scans: familyScans,
+      scans,
     },
   });
 });
@@ -168,10 +195,16 @@ exports.getScansByFamilyId = catchAsync(async (req, res, next) => {
     return next(new AppError(`Family member ${userNotFound}`, 404));
   }
 
+  const scans = family.scans;
+
+  if (!scans.length > 0) {
+    return next(new AppError(noScansFound, 404));
+  }
+
   res.status(200).json({
     status: "success",
     data: {
-      scans: family.scans,
+      scans,
     },
   });
 });
@@ -181,20 +214,23 @@ exports.updateScan = catchAsync(async (req, res, next) => {
   //get scan id
   const id = req.params.id;
 
-  const { title, date } = req.body;
+  const data = req.body;
 
   //find the scan
-  const scan = await Scan.findById(id);
+  const scan = await Scan.findByIdAndUpdate(
+    id,
+    {
+      $set: data,
+    },
+    {
+      new: true,
+    }
+  );
 
   //if scan doesn't exist
   if (!scan) {
     return next(new AppError(`Scan ${userNotFound}`, 404));
   }
-
-  scan.title = title;
-  scan.date = date;
-
-  await scan.save();
 
   res.status(200).json({
     status: "success",
@@ -215,29 +251,8 @@ exports.deleteScan = catchAsync(async (req, res, next) => {
   // get scan id
   const scanId = req.params.id;
 
-  //   check if the scan is a family scan
-
-  // find the patient
-  const patient = await Patient.findById(id);
-  //   .populate({
-  //     path: "familyMembers",
-  //     model: "Family",
-  //     populate: {
-  //       path: "scans",
-  //       model: "Scan",
-  //     },
-  //   });
-
-  //   console.log(patient);
-
-  // if patient doesn't exist
-  if (!patient) {
-    return next(new AppError(`Patient ${userNotFound}`, 404));
-  }
-
   // find the scan
   const scan = await Scan.findById(scanId);
-  //   console.log(scan);
 
   // if scan doesn't exist
   if (!scan) {
@@ -250,23 +265,32 @@ exports.deleteScan = catchAsync(async (req, res, next) => {
   //delete the scan
   await scan.remove();
 
-  // delete the scan id from the patient's collection
-  patient.scans = patient.scans.filter((scan) => scan.toString() !== scanId);
-
-  await patient.save();
-
   // if the scan is for the family member
   if (scan.isFamilyScan) {
-    patient.familyMembers.map(async (familyId) => {
-      const familyMember = await Family.findById(familyId);
-      console.log("Family Member", familyMember);
-      familyMember.scans = familyMember.scans.filter((scan) => {
-        console.log("family Scan", scan.toString());
-        return scan.toString() !== scanId;
+    // find the patient
+    const patient = await Patient.findById(id);
+
+    // if patient doesn't exist
+    if (!patient) {
+      return next(new AppError(`Patient ${userNotFound}`, 404));
+    }
+
+    // fetch the family member array
+    const familyMembers = patient.familyMembers;
+
+    // find the family members and remove the scan id if it is in the scans array
+    familyMembers.map(async (familyId) => {
+      await Family.findByIdAndUpdate(familyId, {
+        $pull: { scans: scanId },
       });
-      await familyMember.save();
     });
-    console.log("yes this is a family scan");
+  }
+  // if the scan is for the patient
+  else {
+    // find the patient and remove the scan id from the patient document
+    await Patient.findByIdAndUpdate(id, {
+      $pull: { scans: scanId },
+    });
   }
 
   res.status(200).json({

@@ -6,10 +6,12 @@ const {
   addFamilyMember,
   getFamilyMemberById,
   updateFamilyMember,
+  deleteFamilyMember,
 } = require("../../controllers/api/familyController");
 
 // import middlewares
 const { authorizeRole, verifyToken } = require("../../middlewares");
+const deleteFamilyEmbeddedDocs = require("../../middlewares/deleteFamilyEmbeddedDocs");
 
 // import utils
 const ROLES = require("../../utils/constants/ROLES");
@@ -30,7 +32,9 @@ router
 router.use(authorizeRole(ROLES[0]));
 
 // basic crud operations
-router.route("/").get().post(addFamilyMember).patch().delete();
+router.route("/").get().post(addFamilyMember);
+
+router.route("/:id").delete([deleteFamilyEmbeddedDocs], deleteFamilyMember);
 
 // export router
 module.exports = router;
