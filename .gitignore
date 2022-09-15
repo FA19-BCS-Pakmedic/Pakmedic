@@ -5,6 +5,7 @@ apiTests
 # dependencies
 node_modules
 package-lock.json
+*.lock
 .pnp
 .pnp.js
 
