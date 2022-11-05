@@ -15,6 +15,9 @@ const colors = {
   gray1: '#808080',
   gray2: '#484848',
   black: '#000',
+  //valid color
+  valid: '#32CD32',
+  invalid: '#dc3545', //lime color hex code here
 };
 
 export default colors;
