@@ -1,6 +1,6 @@
 import {View, Text, TouchableOpacity} from 'react-native';
 import React, {useState} from 'react';
-import SVGImage from '../../../assets/svgs/login-screen-icon.svg';
+import SVGImage from '../../../../assets/svgs/login-screen-icon.svg';
 import {
   FacebookSocialButton,
   GoogleSocialButton,
@@ -9,19 +9,21 @@ import {useForm} from 'react-hook-form';
 
 // custom styles import
 import styles from './styles';
-import colors from '../../../utils/styles/themes/colors';
+import colors from '../../../../utils/styles/themes/colors';
 
 // custom components import
-import {ValidateInputField} from '../../../components/shared/Input';
-import Button from '../../../components/shared/Button';
-import {TextDivider} from '../../../components/shared/Divider';
+import {ValidateInputField} from '../../../../components/shared/Input';
+import Button from '../../../../components/shared/Button';
+import {TextDivider} from '../../../../components/shared/Divider';
 
 //constants import
-import {emailRegex, passwordRegex} from '../../../utils/constants/Regex';
+import {emailRegex, passwordRegex} from '../../../../utils/constants/Regex';
 
-const Login = () => {
+const Login = ({navigation}) => {
+  // hook for hiding and showing password
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
+  //hook for react hook forms
   const {
     control,
     handleSubmit,
@@ -34,9 +36,21 @@ const Login = () => {
     },
   });
 
+  //on submit of sign up form
   const onSubmit = data => {
     console.log(data, 'data');
     console.log(errors, 'error');
+  };
+
+  //navigate to signup screen
+  const navigateToRegisterScreen = () => {
+    console.log('This function is being called');
+    navigation.navigate('Auth', {
+      screen: 'RegisterNavigation',
+      params: {
+        screen: 'Register',
+      },
+    });
   };
 
   return (
@@ -116,7 +130,7 @@ const Login = () => {
       {/* register with text */}
       <View style={styles.registerTextContainer}>
         <Text style={styles.text}>Don't have an account? </Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={navigateToRegisterScreen}>
           <Text style={styles.registerText}>Register Now</Text>
         </TouchableOpacity>
       </View>

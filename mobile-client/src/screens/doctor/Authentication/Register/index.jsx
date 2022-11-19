@@ -8,30 +8,29 @@ import {useForm} from 'react-hook-form';
 
 // custom styles import
 import styles from './styles';
-import colors from '../../../utils/styles/themes/colors';
+import colors from '../../../../utils/styles/themes/colors';
 
 // custom components import
 import {
   ValidateInputField,
   ContactInputField,
-} from '../../../components/shared/Input';
-
-import Button from '../../../components/shared/Button';
-import {TextDivider} from '../../../components/shared/Divider';
-import RadioGroup from '../../../components/shared/Radio';
-import Dropdown from '../../../components/shared/Dropdown';
+} from '../../../../components/shared/Input';
+import Button from '../../../../components/shared/Button';
+import {TextDivider} from '../../../../components/shared/Divider';
+import RadioGroup from '../../../../components/shared/Radio';
+import Dropdown from '../../../../components/shared/Dropdown';
 
 // import constants
-import CITIES from '../../../utils/constants/Cities';
-import GENDERS from '../../../utils/constants/Genders';
+import CITIES from '../../../../utils/constants/Cities';
+import GENDERS from '../../../../utils/constants/Genders';
 import {
   pmcIdRegex,
   emailRegex,
   passwordRegex,
   phoneNumberRegex,
-} from '../../../utils/constants/Regex';
+} from '../../../../utils/constants/Regex';
 
-const Register = () => {
+const Register = ({navigation}) => {
   // useForm hook from react-hook-form
   const {
     control,
@@ -54,13 +53,6 @@ const Register = () => {
     },
   });
 
-  // form submit handler
-  const onSubmit = data => {
-    console.log(data, 'data');
-    console.log(isValid, 'isValid');
-    console.log('error', errors);
-  };
-
   // for setting the password visibility
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
@@ -68,6 +60,13 @@ const Register = () => {
 
   // for opening and closing the Dropdown
   const [open, setOpen] = useState(false);
+
+  // form submit handler
+  const onSubmit = data => {
+    console.log(data, 'data');
+    console.log(isValid, 'isValid');
+    console.log('error', errors);
+  };
 
   //function for setting the value of city
   const setCity = callback => {
@@ -79,6 +78,18 @@ const Register = () => {
   const setGender = gender => {
     setValue('gender', gender);
     clearErrors('gender');
+  };
+
+  //navigate back to login screen
+  //navigate to signup screen
+  const navigateToLoginScreen = () => {
+    console.log('This function is being called');
+    navigation.navigate('Auth', {
+      screen: 'LoginNavigation',
+      params: {
+        screen: 'Login',
+      },
+    });
   };
 
   return (
@@ -250,7 +261,7 @@ const Register = () => {
         {/* register with text */}
         <View style={styles.registerTextContainer}>
           <Text style={styles.text}>Already have an account? </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={navigateToLoginScreen}>
             <Text style={styles.registerText}>Login Now</Text>
           </TouchableOpacity>
         </View>

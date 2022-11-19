@@ -1,25 +1,28 @@
+//libraries import
 import React from 'react';
-import {SafeAreaView, StyleSheet} from 'react-native';
+// import {SafeAreaView, StyleSheet} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
 
-// screens
-import Login from './src/screens/shared/Login';
-import Register from './src/screens/doctor/Authentication/Register';
+// import root navigation
+import RootNavigation from './src/setup/navigation/root.navigation';
 
 const App = () => {
   return (
-    <SafeAreaView style={styles.root}>
-      <Login />
-    </SafeAreaView>
+    <NavigationContainer>
+      <RootNavigation />
+    </NavigationContainer>
   );
 };
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+// const styles = StyleSheet.create({
+//   root: {
+//     flex: 1,
+//     width: '100%',
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     borderWidth: 2,
+//     borderColor: 'red',
+//   },
+// });
 
 export default App;
