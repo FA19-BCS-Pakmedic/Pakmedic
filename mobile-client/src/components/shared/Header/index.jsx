@@ -3,6 +3,7 @@ import React from 'react';
 
 // import theme
 import colors from '../../../utils/styles/themes/colors';
+import fonts from '../../../utils/styles/themes/fonts';
 
 const Header = ({color}) => {
   return (
@@ -25,7 +26,7 @@ const styles = color =>
     },
     text: {
       color: colors.secondary1,
-      fontSize: 25,
-      fontWeight: 'bold',
+      fontSize: fonts.size.font14,
+      fontWeight: fonts.weight.bold,
     },
   });

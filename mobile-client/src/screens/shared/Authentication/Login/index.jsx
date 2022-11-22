@@ -56,9 +56,8 @@ const Login = ({navigation}) => {
   return (
     <View style={styles.root}>
       {/* icon */}
-      <View style={styles.logoContainer}>
-        <SVGImage width={300} height={300} />
-      </View>
+
+      <SVGImage width={300} height={300} />
 
       {/* email and password fields */}
       <View style={styles.formContainer}>
