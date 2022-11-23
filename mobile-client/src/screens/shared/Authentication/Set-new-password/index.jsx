@@ -17,7 +17,7 @@ import {passwordRegex} from '../../../../utils/constants/Regex';
 import {ValidateInputField} from '../../../../components/shared/Input';
 import Button from '../../../../components/shared/Button';
 
-const ForgotPassword = () => {
+const SetNewPassword = () => {
   //hook for react hook forms
   const {
     control,
@@ -106,4 +106,4 @@ const ForgotPassword = () => {
   );
 };
 
-export default ForgotPassword;
+export default SetNewPassword;

@@ -50,7 +50,7 @@ const OtpVerification = () => {
 
   return (
     <SafeAreaView style={styles.root}>
-      <Header />
+      {/* custom navigation header with screen name and back navigation button */}
       <CustomNavHeader screenName={'OTP Code Verification'} />
       {/* input fields */}
       <View>

@@ -5,18 +5,17 @@ import {NavigationContainer} from '@react-navigation/native';
 
 // import root navigation
 import RootNavigation from './src/setup/navigation/root.navigation';
-// import OtpVerification from './src/screens/shared/Authentication/OTP-verification';
-import Login from './src/screens/shared/Authentication/Login';
-import Register from './src/screens/doctor/Authentication/Register';
+import ForgotPassword from './src/screens/shared/Authentication/Forgot-password';
+import OtpVerification from './src/screens/shared/Authentication/OTP-verification';
 
 const App = () => {
   return (
-    <NavigationContainer>
-      <RootNavigation />
-    </NavigationContainer>
-    // <SafeAreaView style={styles.root}>
-    //   <Login />
-    // </SafeAreaView>
+    // <NavigationContainer>
+    //   <RootNavigation />
+    // </NavigationContainer>
+    <SafeAreaView style={styles.root}>
+      <ForgotPassword />
+    </SafeAreaView>
   );
 };
 

@@ -6,22 +6,10 @@ import * as Animatable from 'react-native-animatable';
 import IntlPhoneInput from 'react-native-intl-phone-input';
 
 // import styles
-import {InputStyles} from './Input.styles';
 import colors from '../../../utils/styles/themes/colors';
 
 // custom components import
 import ErrorMessage from '../ErrorMessage';
-
-getInputType = type => {
-  switch (type) {
-    case 'filled':
-      return InputStyles.filled;
-    case 'outlined':
-      return InputStyles.outlined;
-    default:
-      return 'default';
-  }
-};
 
 //contact input field
 
@@ -115,7 +103,7 @@ export const ValidateInputField = ({
         fieldState: {error, isDirty, isTouched},
       }) => {
         return (
-          <View style={styles.root}>
+          <View style={styles().root}>
             <View
               style={[
                 styles(type).container,
@@ -176,9 +164,18 @@ const styles = (type, width) =>
     root: {
       width: '100%',
     },
-
     container: {
-      ...getInputType(type),
+      backgroundColor: type === 'filled' ? colors.secondaryLight : colors.white,
+      borderWidth: type === 'filled' ? 0 : 1,
+      borderColor: type === 'filled' ? colors.secondaryLight : colors.primary1,
+      height: 50,
+      borderRadius: 5,
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      marginTop: 10,
+      marginBottom: 5,
       width: '100%',
     },
 
@@ -188,10 +185,14 @@ const styles = (type, width) =>
     },
 
     iconsContainer: {
-      ...InputStyles.iconsContainer,
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      alignItems: 'center',
     },
 
     iconContainer: {
-      ...InputStyles.iconContainer,
+      width: 25,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });

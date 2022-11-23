@@ -22,7 +22,7 @@ const CustomNavHeader = ({screenName}) => {
 const styles = StyleSheet.create({
   root: {
     width: '100%',
-    height: '10%',
+    height: 80,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   },
 
   iconContainer: {
-    width: '10%',
+    width: '12%',
     height: '50%',
     alignItems: 'center',
     justifyContent: 'center',

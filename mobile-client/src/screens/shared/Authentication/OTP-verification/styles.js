@@ -9,8 +9,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'red',
+    paddingHorizontal: 20,
   },
 
   inputContainer: {
