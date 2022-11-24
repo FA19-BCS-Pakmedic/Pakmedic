@@ -1,108 +1,161 @@
-import {View, Text, TextInput} from 'react-native';
-import React from 'react';
+import {View, Text, TouchableOpacity} from 'react-native';
+import React, {useEffect} from 'react';
 import {useForm} from 'react-hook-form';
+import * as Animatable from 'react-native-animatable';
 
 // import styles
 import {styles} from './styles';
 import colors from '../../../../utils/styles/themes/colors';
 
 //import logo
-import SvgImage from '../../../../assets/svgs/reset-password-screen-logo.svg';
+import SvgImage from '../../../../assets/svgs/forgot-password-screen-icon.svg';
 import CustomNavHeader from '../../../../components/shared/CustomNavHeader';
 
 //import regex
-import {passwordRegex} from '../../../../utils/constants/Regex';
+import {emailRegex, phoneNumberRegex} from '../../../../utils/constants/Regex';
 
 //import custom components
-import {ValidateInputField} from '../../../../components/shared/Input';
+import {
+  ContactInputField,
+  ValidateInputField,
+} from '../../../../components/shared/Input';
 import Button from '../../../../components/shared/Button';
+import ForgotPasswordCard from '../../../../components/shared/ForgotPasswordCard';
+import Header from '../../../../components/shared/Header';
 
 const ForgotPassword = () => {
+  const [optionSelected, setOptionSelected] = React.useState('Phone');
+
   //hook for react hook forms
   const {
     control,
     handleSubmit,
-    formState: {errors},
+    formState: {errors, isValid},
   } = useForm({
     mode: 'all',
     defaultValues: {
-      oldPassword: '',
-      newPassword: '',
+      email: '',
+      contact: '',
     },
   });
 
-  const [isOldPasswordVisible, setIsOldPasswordVisible] = React.useState(false);
-  const [isNewPasswordVisible, setIsNewPasswordVisible] = React.useState(false);
+  const onOptionSelect = option => {
+    setOptionSelected(option);
+  };
 
-  onSubmit = data => {
+  const onSubmit = data => {
     console.log(data);
+    console.log(isValid);
   };
 
   return (
-    <View style={styles.root}>
+    <React.Fragment>
+      {/* remove the header when adding to the navigation stack */}
+      <Header />
+
       {/* custom navigation header with screen name and back navigation button */}
       <CustomNavHeader screenName={'Forgot Password'} />
-      {/* Screen logo */}
-      <SvgImage width={250} height={250} />
-      {/* reset password text */}
-      <View style={styles.textContainer}>
-        <Text style={styles.text}>Create a new password</Text>
-      </View>
-      {/* fields */}
-      <View style={styles.fieldsContainer}>
-        {/* Old password */}
-        <ValidateInputField
-          placeholder="Enter you old password"
-          type="outlined"
-          width="85.5%"
-          placeholderTextColor={colors.secondary1}
-          keyboardType="password"
-          control={control}
-          name="oldPassword"
-          isPasswordField={true}
-          isPasswordVisible={!isOldPasswordVisible}
-          setIsPasswordVisible={setIsOldPasswordVisible}
-          rules={{
-            required: "Password can't be empty",
-            pattern: {
-              value: passwordRegex,
-              message: 'Please enter a valid password',
-            },
-          }}
-        />
+      <View style={styles.root}>
+        {/* Screen logo */}
+        <SvgImage width={250} height={250} />
 
-        {/* New password */}
-        <ValidateInputField
-          placeholder="Enter you new password"
-          type="outlined"
-          width="85.5%"
-          placeholderTextColor={colors.secondary1}
-          keyboardType="password"
-          control={control}
-          name="newPassword"
-          isPasswordField={true}
-          isPasswordVisible={!isNewPasswordVisible}
-          setIsPasswordVisible={setIsNewPasswordVisible}
-          rules={{
-            required: "Password can't be empty",
-            pattern: {
-              value: passwordRegex,
-              message: 'Please enter a valid password',
-            },
-          }}
-        />
-      </View>
+        {/* select option view */}
+        {!optionSelected && (
+          <View style={styles.container}>
+            {/* Select option text */}
+            <View style={styles.textContainer}>
+              <Text style={styles.text}>
+                Select which contact details should we use to reset your
+                password
+              </Text>
+            </View>
 
-      {/* Change password button */}
-      <View style={styles.buttonContainer}>
-        <Button
-          width="90%"
-          type="filled"
-          onPress={handleSubmit(onSubmit)}
-          label="Verify Code"
-        />
+            {/* options */}
+
+            <Animatable.View
+              animation="pulse"
+              easing="ease-out"
+              iterationCount={1}
+              style={styles.optionsContainer}>
+              <ForgotPasswordCard title="Phone" handlePress={onOptionSelect} />
+              <ForgotPasswordCard title="Email" handlePress={onOptionSelect} />
+            </Animatable.View>
+          </View>
+        )}
+
+        {/* selected option input */}
+        {optionSelected && (
+          <View style={styles.container}>
+            {/* title text for input */}
+            <View style={styles.textContainer}>
+              <Text style={styles.text}>
+                Enter your {optionSelected?.toLowerCase()}
+              </Text>
+            </View>
+            {/* input field container */}
+            <Animatable.View
+              animation="pulse"
+              easing="ease-out"
+              iterationCount={1}
+              style={styles.inputContainer}>
+              {optionSelected.toLowerCase() === 'email' ? (
+                <ValidateInputField
+                  placeholder="Email"
+                  type="outlined"
+                  width="93%"
+                  placeholderTextColor={colors.secondary1}
+                  keyboardType="email-address"
+                  control={control}
+                  name="email"
+                  rules={{
+                    required: "Email can't be empty",
+                    pattern: {
+                      value: emailRegex,
+                      message: 'Please enter a valid email',
+                    },
+                  }}
+                />
+              ) : (
+                <ContactInputField
+                  type="outlined"
+                  width="86%"
+                  control={control}
+                  name="contact"
+                  rules={{
+                    required: "Phone number can't be empty",
+                    pattern: {
+                      value: phoneNumberRegex,
+                      message: 'Invalid phone number',
+                    },
+                  }}
+                />
+              )}
+            </Animatable.View>
+
+            <Button
+              width="50%"
+              type="outlined"
+              label="Reselect option"
+              onPress={() => {
+                setOptionSelected('');
+              }}
+            />
+          </View>
+        )}
+
+        {/* Send Code button */}
+        {optionSelected && (
+          <View style={styles.buttonContainer}>
+            <Button
+              width="90%"
+              type="filled"
+              label="Send Verification Code"
+              onPress={handleSubmit(onSubmit)}
+            />
+          </View>
+        )}
       </View>
-    </View>
+    </React.Fragment>
   );
 };
 

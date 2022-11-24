@@ -13,9 +13,20 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
 
+  container: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+
   textContainer: {
     width: '100%',
     marginTop: 10,
+  },
+
+  inputContainer: {
+    marginVertical: 20,
   },
 
   text: {
@@ -23,9 +34,8 @@ export const styles = StyleSheet.create({
     fontWeight: fonts.weight.semi,
   },
 
-  fieldsContainer: {
+  optionsContainer: {
     width: '100%',
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,

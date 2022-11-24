@@ -1,5 +1,5 @@
 // importing libraries`
-import {View, Text, SafeAreaView, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 
 // importing styles
@@ -29,6 +29,7 @@ const OtpVerification = () => {
   const [timer, setTimer] = useState(0);
 
   useEffect(() => {
+    inputRef1.current.focus();
     setTimer(5);
   }, []);
 
@@ -49,82 +50,85 @@ const OtpVerification = () => {
   };
 
   return (
-    <SafeAreaView style={styles.root}>
+    <React.Fragment>
       {/* custom navigation header with screen name and back navigation button */}
       <CustomNavHeader screenName={'OTP Code Verification'} />
+      <View style={styles.root}>
+        {/* main container */}
+        <View style={styles.mainContainer}>
+          {/* TODO: ADD THE VALIDATION MESSAGE OF CODE BEING SENT TO THE RELATIVE EMAIL OR PHONE NUMBER WHICH WILL BE RETRIEVED FROM THE NAVIGATION PARAMS */}
 
-      {/* main container */}
-      <View style={styles.mainContainer}>
-        {/* input fields */}
-        <View style={styles.inputContainer}>
-          <AutoNextInput
+          {/* input fields */}
+          <View style={styles.inputContainer}>
+            <AutoNextInput
+              type="filled"
+              width="20%"
+              maxLength={1}
+              ref={inputRef1}
+              onChangeText={text => {
+                inputRef2.current.focus();
+                setPin1(text);
+              }}
+            />
+            <AutoNextInput
+              type="filled"
+              width="20%"
+              maxLength={1}
+              ref={inputRef2}
+              onChangeText={text => {
+                inputRef3.current.focus();
+                setPin2(text);
+              }}
+            />
+            <AutoNextInput
+              type="filled"
+              width="20%"
+              maxLength={1}
+              ref={inputRef3}
+              onChangeText={text => {
+                inputRef4.current.focus();
+                setPin3(text);
+              }}
+            />
+            <AutoNextInput
+              type="filled"
+              width="20%"
+              maxLength={1}
+              ref={inputRef4}
+              onChangeText={text => {
+                setPin4(text);
+              }}
+            />
+          </View>
+          {/* resend code part */}
+          <View style={styles.resendCodeContainer}>
+            {timer > 0 ? (
+              <Text style={styles.text}>
+                Resend Code in{' '}
+                <Text style={{color: colors.accent1}}>{timer}s</Text>
+              </Text>
+            ) : (
+              <TouchableOpacity
+                onPress={() => {
+                  setTimer(5);
+                }}>
+                <Text style={styles.text}>Resend code</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* submit button */}
+        <View style={styles.buttonContainer}>
+          <Button
+            width="90%"
             type="filled"
-            width="20%"
-            maxLength={1}
-            ref={inputRef1}
-            onChangeText={text => {
-              inputRef2.current.focus();
-              setPin1(text);
-            }}
-          />
-          <AutoNextInput
-            type="filled"
-            width="20%"
-            maxLength={1}
-            ref={inputRef2}
-            onChangeText={text => {
-              inputRef3.current.focus();
-              setPin2(text);
-            }}
-          />
-          <AutoNextInput
-            type="filled"
-            width="20%"
-            maxLength={1}
-            ref={inputRef3}
-            onChangeText={text => {
-              inputRef4.current.focus();
-              setPin3(text);
-            }}
-          />
-          <AutoNextInput
-            type="filled"
-            width="20%"
-            maxLength={1}
-            ref={inputRef4}
-            onChangeText={text => {
-              setPin4(text);
-            }}
+            onPress={onSubmit}
+            label="Verify Code"
           />
         </View>
-        {/* resend code part */}
-        <View style={styles.resendCodeContainer}>
-          {timer > 0 ? (
-            <Text style={styles.text}>
-              Resend Code in{' '}
-              <Text style={{color: colors.accent1}}>{timer}s</Text>
-            </Text>
-          ) : (
-            <TouchableOpacity
-              onPress={() => {
-                setTimer(5);
-              }}>
-              <Text style={styles.text}>Resend code</Text>
-            </TouchableOpacity>
-          )}
-        </View>
       </View>
-
-      {/* submit button */}
-      <View style={styles.buttonContainer}>
-        <Button
-          width="90%"
-          type="filled"
-          onPress={onSubmit}
-          label="Verify Code"
-        />
-      </View>
-    </SafeAreaView>
+    </React.Fragment>
   );
 };
 
