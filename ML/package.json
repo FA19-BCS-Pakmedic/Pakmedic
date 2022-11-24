@@ -1,0 +1,17 @@
+{
+  "name": "machine-learning-pakmedic",
+  "version": "1.0.0",
+  "description": "A machine learning micro web framework for flask and node js integration",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Mohammad Haris Zia",
+  "license": "ISC",
+  "devDependencies": {
+    "express": "^4.18.1",
+    "flask": "^0.2.10",
+    "request": "^2.88.2"
+  }
+}
