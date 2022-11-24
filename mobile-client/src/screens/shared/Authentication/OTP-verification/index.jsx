@@ -52,66 +52,69 @@ const OtpVerification = () => {
     <SafeAreaView style={styles.root}>
       {/* custom navigation header with screen name and back navigation button */}
       <CustomNavHeader screenName={'OTP Code Verification'} />
-      {/* input fields */}
-      <View>
-        <SVGImage width={300} height={300} />
+
+      {/* main container */}
+      <View style={styles.mainContainer}>
+        {/* input fields */}
+        <View style={styles.inputContainer}>
+          <AutoNextInput
+            type="filled"
+            width="20%"
+            maxLength={1}
+            ref={inputRef1}
+            onChangeText={text => {
+              inputRef2.current.focus();
+              setPin1(text);
+            }}
+          />
+          <AutoNextInput
+            type="filled"
+            width="20%"
+            maxLength={1}
+            ref={inputRef2}
+            onChangeText={text => {
+              inputRef3.current.focus();
+              setPin2(text);
+            }}
+          />
+          <AutoNextInput
+            type="filled"
+            width="20%"
+            maxLength={1}
+            ref={inputRef3}
+            onChangeText={text => {
+              inputRef4.current.focus();
+              setPin3(text);
+            }}
+          />
+          <AutoNextInput
+            type="filled"
+            width="20%"
+            maxLength={1}
+            ref={inputRef4}
+            onChangeText={text => {
+              setPin4(text);
+            }}
+          />
+        </View>
+        {/* resend code part */}
+        <View style={styles.resendCodeContainer}>
+          {timer > 0 ? (
+            <Text style={styles.text}>
+              Resend Code in{' '}
+              <Text style={{color: colors.accent1}}>{timer}s</Text>
+            </Text>
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                setTimer(5);
+              }}>
+              <Text style={styles.text}>Resend code</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-      <View style={styles.inputContainer}>
-        <AutoNextInput
-          type="filled"
-          width="20%"
-          maxLength={1}
-          ref={inputRef1}
-          onChangeText={text => {
-            inputRef2.current.focus();
-            setPin1(text);
-          }}
-        />
-        <AutoNextInput
-          type="filled"
-          width="20%"
-          maxLength={1}
-          ref={inputRef2}
-          onChangeText={text => {
-            inputRef3.current.focus();
-            setPin2(text);
-          }}
-        />
-        <AutoNextInput
-          type="filled"
-          width="20%"
-          maxLength={1}
-          ref={inputRef3}
-          onChangeText={text => {
-            inputRef4.current.focus();
-            setPin3(text);
-          }}
-        />
-        <AutoNextInput
-          type="filled"
-          width="20%"
-          maxLength={1}
-          ref={inputRef4}
-          onChangeText={text => {
-            setPin4(text);
-          }}
-        />
-      </View>
-      {/* resend code part */}
-      <View style={styles.resendCodeContainer}>
-        {timer > 0 ? (
-          <Text style={styles.text}>
-            Resend Code in <Text style={{color: colors.accent1}}>{timer}s</Text>
-          </Text>
-        ) : (
-          <TouchableOpacity
-            onPress={() => {
-              setTimer(5);
-            }}>
-            <Text style={styles.text}>Resend code</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+
       {/* submit button */}
       <View style={styles.buttonContainer}>
         <Button

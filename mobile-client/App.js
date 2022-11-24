@@ -7,6 +7,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import RootNavigation from './src/setup/navigation/root.navigation';
 import ForgotPassword from './src/screens/shared/Authentication/Forgot-password';
 import OtpVerification from './src/screens/shared/Authentication/OTP-verification';
+import SetNewPassword from './src/screens/shared/Authentication/Set-new-password';
 
 const App = () => {
   return (
@@ -14,7 +15,7 @@ const App = () => {
     //   <RootNavigation />
     // </NavigationContainer>
     <SafeAreaView style={styles.root}>
-      <ForgotPassword />
+      <OtpVerification />
     </SafeAreaView>
   );
 };

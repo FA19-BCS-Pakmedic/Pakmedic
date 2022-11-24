@@ -12,13 +12,20 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
 
+  mainContainer: {
+    width: '100%',
+    flex: 2,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+
   inputContainer: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 20,
     paddingHorizontal: 10,
     justifyContent: 'space-between',
+    marginVertical: 30,
   },
 
   input: {
@@ -31,18 +38,11 @@ export const styles = StyleSheet.create({
   resendCodeContainer: {
     width: '100%',
     alignItems: 'center',
-    paddingVertical: 20,
   },
 
   text: {
     fontSize: fonts.size.font14,
     fontWeight: fonts.weight.semi,
-  },
-
-  submitButton: {
-    width: '70%',
-    backgroundColor: colors.primary1,
-    paddingVertical: 20,
   },
 
   buttonContainer: {
