@@ -1,4 +1,4 @@
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
 import React, {useState} from 'react';
 import SVGImage from '../../../../assets/svgs/login-screen-icon.svg';
 import {
@@ -54,86 +54,88 @@ const Login = ({navigation}) => {
   };
 
   return (
-    <View style={styles.root}>
-      {/* icon */}
+    <ScrollView>
+      <View style={styles.root}>
+        {/* icon */}
 
-      <SVGImage width={300} height={300} />
+        <SVGImage width={300} height={300} />
 
-      {/* email and password fields */}
-      <View style={styles.formContainer}>
-        {/* email field */}
-        <ValidateInputField
-          placeholder="Email"
-          type="outlined"
-          width="93%"
-          placeholderTextColor={colors.secondary1}
-          keyboardType="email-address"
-          control={control}
-          name="email"
-          rules={{
-            required: "Email can't be empty",
-            pattern: {
-              value: emailRegex,
-              message: 'Please enter a valid email',
-            },
-          }}
+        {/* email and password fields */}
+        <View style={styles.formContainer}>
+          {/* email field */}
+          <ValidateInputField
+            placeholder="Email"
+            type="outlined"
+            width="93%"
+            placeholderTextColor={colors.secondary1}
+            keyboardType="email-address"
+            control={control}
+            name="email"
+            rules={{
+              required: "Email can't be empty",
+              pattern: {
+                value: emailRegex,
+                message: 'Please enter a valid email',
+              },
+            }}
+          />
+          {/* password field */}
+          <ValidateInputField
+            placeholder="Password"
+            type="outlined"
+            width="85.5%"
+            placeholderTextColor={colors.secondary1}
+            keyboardType="password"
+            control={control}
+            name="password"
+            isPasswordField={true}
+            isPasswordVisible={!isPasswordVisible}
+            setIsPasswordVisible={setIsPasswordVisible}
+            rules={{
+              required: "Password can't be empty",
+              pattern: {
+                value: passwordRegex,
+                message: 'Please enter a valid password',
+              },
+            }}
+          />
+        </View>
+
+        {/* login button */}
+        <Button
+          onPress={handleSubmit(onSubmit)}
+          label="Login"
+          type="filled"
+          width="100%"
         />
-        {/* password field */}
-        <ValidateInputField
-          placeholder="Password"
-          type="outlined"
-          width="85.5%"
-          placeholderTextColor={colors.secondary1}
-          keyboardType="password"
-          control={control}
-          name="password"
-          isPasswordField={true}
-          isPasswordVisible={!isPasswordVisible}
-          setIsPasswordVisible={setIsPasswordVisible}
-          rules={{
-            required: "Password can't be empty",
-            pattern: {
-              value: passwordRegex,
-              message: 'Please enter a valid password',
-            },
-          }}
-        />
+
+        {/* divider */}
+        <TextDivider label="Or Login With" color={colors.secondary1} />
+
+        {/* social buttons */}
+        <View style={{width: '100%'}}>
+          <FacebookSocialButton
+            buttonViewStyle={{width: '100%', marginVertical: 10}}
+          />
+          <GoogleSocialButton
+            buttonViewStyle={{
+              width: '100%',
+              borderWidth: 1,
+              borderColor: '#484848',
+              marginVertical: 10,
+            }}
+          />
+        </View>
+
+        {/* register with text */}
+        <View style={styles.registerTextContainer}>
+          <Text style={styles.text}>Don't have an account? </Text>
+          <TouchableOpacity onPress={navigateToRegisterScreen}>
+            <Text style={styles.registerText}>Register Now</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-
-      {/* login button */}
-      <Button
-        onPress={handleSubmit(onSubmit)}
-        label="Login"
-        type="filled"
-        width="100%"
-      />
-
-      {/* divider */}
-      <TextDivider label="Or Login With" color={colors.secondary1} />
-
-      {/* social buttons */}
-      <View style={{width: '100%'}}>
-        <FacebookSocialButton
-          buttonViewStyle={{width: '100%', marginVertical: 10}}
-        />
-        <GoogleSocialButton
-          buttonViewStyle={{
-            width: '100%',
-            borderWidth: 1,
-            borderColor: '#484848',
-            marginVertical: 10,
-          }}
-        />
-      </View>
-
-      {/* register with text */}
-      <View style={styles.registerTextContainer}>
-        <Text style={styles.text}>Don't have an account? </Text>
-        <TouchableOpacity onPress={navigateToRegisterScreen}>
-          <Text style={styles.registerText}>Register Now</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </ScrollView>
   );
 };
 
