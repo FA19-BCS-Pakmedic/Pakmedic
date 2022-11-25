@@ -8,12 +8,14 @@ import RootNavigation from './src/setup/navigation/root.navigation';
 import CompleteProfile from './src/screens/doctor/Authentication/Complete-profile';
 import Onboarding from './src/screens/doctor/On-Boarding';
 import Register from './src/screens/doctor/Authentication/Register';
+import SupportHome from './src/screens/shared/Support-communities/Home';
 
 const App = () => {
   return (
     <NavigationContainer>
       <RootNavigation />
     </NavigationContainer>
+
     // {/* <SafeAreaView style={styles.root}>
     //   <Onboarding />
     // </SafeAreaView> */}
