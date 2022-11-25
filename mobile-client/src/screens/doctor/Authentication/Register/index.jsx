@@ -107,6 +107,7 @@ const Register = ({navigation}) => {
             placeholderTextColor={colors.secondary1}
             control={control}
             name="pmcId"
+            title={'PMC ID'}
             rules={{
               required: "PMC ID can't be empty",
               minLength: {
@@ -125,6 +126,7 @@ const Register = ({navigation}) => {
             placeholderTextColor={colors.secondary1}
             keyboardType="email-address"
             control={control}
+            title={'email'}
             name="email"
             rules={{
               required: "Email can't be empty",
@@ -141,6 +143,7 @@ const Register = ({navigation}) => {
             control={control}
             name="password"
             isPasswordField={true}
+            title={'Password'}
             isPasswordVisible={!isPasswordVisible}
             setIsPasswordVisible={setIsPasswordVisible}
             rules={{
@@ -165,6 +168,7 @@ const Register = ({navigation}) => {
             keyboardType="password"
             control={control}
             name="confirm-password"
+            title={'Confirm Password'}
             isPasswordField={true}
             isPasswordVisible={!isConfirmPasswordVisible}
             setIsPasswordVisible={setIsConfirmPasswordVisible}
@@ -181,6 +185,7 @@ const Register = ({navigation}) => {
             width="86%"
             control={control}
             name="contact"
+            title={'Phone number'}
             rules={{
               required: "Phone number can't be empty",
               pattern: {
