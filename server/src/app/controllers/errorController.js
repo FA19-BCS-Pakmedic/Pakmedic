@@ -1,4 +1,4 @@
-const AppError = require("../utils/helpers/appError");
+const { AppError, deleteFile } = require("../utils/helpers");
 
 const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}: ${err.value}.`;
@@ -19,7 +19,12 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
-const sendErrorDev = (err, res) => {
+const sendErrorDev = (err, res, req) => {
+  // delete image file if there was an image stored
+  if (req.file) {
+    deleteFile(req.file.filename);
+  }
+
   res.status(err.statusCode).json({
     status: err.status,
     error: err,
@@ -28,7 +33,12 @@ const sendErrorDev = (err, res) => {
   });
 };
 
-const sendErrorProd = (err, res) => {
+const sendErrorProd = (err, res, req) => {
+  // delete image file if there was an image stored
+  if (req.file) {
+    deleteFile(req.file.filename);
+  }
+
   // Operational, trusted error: send message to client
   if (err.isOperational) {
     res.status(err.statusCode).json({
@@ -56,7 +66,7 @@ module.exports = (err, req, res, next) => {
   err.status = err.status || "error";
 
   if (process.env.NODE_ENV === "development") {
-    sendErrorDev(err, res);
+    sendErrorDev(err, res, req);
   } else if (process.env.NODE_ENV === "production") {
     let error = { ...err };
 
@@ -65,6 +75,6 @@ module.exports = (err, req, res, next) => {
     if (error.name === "ValidationError")
       error = handleValidationErrorDB(error);
 
-    sendErrorProd(error, res);
+    sendErrorProd(error, res, req);
   }
 };

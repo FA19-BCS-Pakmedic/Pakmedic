@@ -3,13 +3,13 @@ const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
 
 //utils import
-const catchAsync = require("../utils/helpers/catchAsync");
-const AppError = require("../utils/helpers/appError");
-const jwtConfig = require("../utils/configs/jwtConfig");
+const { AppError, catchAsync } = require("../utils/helpers");
+const { jwtConf } = require("../utils/configs");
+
 const {
   userDoesNotExist,
   userNotLoggedIn,
-} = require("../utils/constants/ERRORMESSAGES");
+} = require("../utils/constants/RESPONSEMESSAGES");
 
 // import constants
 const ROLES = require("../utils/constants/ROLES");
@@ -30,13 +30,11 @@ module.exports = catchAsync(async (req, res, next) => {
     token = req.cookies.jwt;
   }
   if (!token) {
-    return next(
-      new AppError("You are not logged in! Please log in to get access.", 401)
-    );
+    return next(new AppError(userNotLoggedIn, 401));
   }
 
   // 2) Verification token
-  const decoded = await promisify(jwt.verify)(token, jwtConfig.accessSecret);
+  const decoded = await promisify(jwt.verify)(token, jwtConf.accessSecret);
 
   console.log("decoded", decoded);
   req.decoded = decoded;
@@ -48,18 +46,14 @@ module.exports = catchAsync(async (req, res, next) => {
       : decoded.role === ROLES[1]
       ? models.doctor
       : models.admin;
+      
 
   // 3) Check if user still exists
   const currentUser = await Model.findById(decoded.id);
 
   console.log(currentUser);
   if (!currentUser) {
-    return next(
-      new AppError(
-        "The user belonging to this token does no longer exist.",
-        401
-      )
-    );
+    return next(new AppError(userDoesNotExist, 401));
   }
   // // 4) Check if user changed password after the token was issued
   // if (currentUser.changedPasswordAfter(decoded.iat)) {

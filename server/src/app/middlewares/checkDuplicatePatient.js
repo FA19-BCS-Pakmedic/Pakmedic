@@ -1,9 +1,11 @@
 const db = require("../models");
-const AppError = require("../utils/helpers/appError");
-const catchAsync = require("../utils/helpers/catchAsync");
-const deleteFile = require("../utils/helpers/deleteFile");
+const { AppError, catchAsync, deleteFile } = require("../utils/helpers");
 
 const ROLES = require("../utils/constants/ROLES");
+const {
+  duplicatePatient,
+  invalidRole,
+} = require("../utils/constants/RESPONSEMESSAGES");
 
 // function to check if there are users with the same email or cnic
 module.exports = catchAsync(async (req, res, next) => {
@@ -14,13 +16,11 @@ module.exports = catchAsync(async (req, res, next) => {
     const Patient = db.patient;
     user = await Patient.findOne({ $or: [{ email }, { cnic }] });
     if (user) {
-      deleteFile(req.file.path);
-      return next(
-        new AppError("This email or cnic is already registered", 409)
-      );
+      deleteFile(req.file.filename, "images");
+      return next(new AppError(duplicatePatient, 409));
     }
   } else {
-    return next(new AppError("Invalid role", 404));
+    return next(new AppError(invalidRole, 404));
   }
 
   next();
