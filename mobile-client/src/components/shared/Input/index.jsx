@@ -1,5 +1,11 @@
 //node modules import
-import {TextInput, View, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  TextInput,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+} from 'react-native';
 import {Controller} from 'react-hook-form';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
@@ -7,13 +13,21 @@ import IntlPhoneInput from 'react-native-intl-phone-input';
 
 // import styles
 import colors from '../../../utils/styles/themes/colors';
+import fonts from '../../../utils/styles/themes/fonts';
 
 // custom components import
 import ErrorMessage from '../ErrorMessage';
 
 //contact input field
 
-export const ContactInputField = ({control, name, rules = {}, type, width}) => {
+export const ContactInputField = ({
+  control,
+  name,
+  rules = {},
+  type,
+  width,
+  title,
+}) => {
   return (
     <Controller
       control={control}
@@ -24,6 +38,7 @@ export const ContactInputField = ({control, name, rules = {}, type, width}) => {
         fieldState: {error, isDirty, isTouched},
       }) => (
         <View style={styles().root}>
+          <Text style={styles().title}>{title}</Text>
           <View
             style={[
               styles(type, width).container,
@@ -79,6 +94,7 @@ export const ValidateInputField = ({
   keyboardType,
   isPasswordField,
   placeholderTextColor,
+  title,
   isPasswordVisible,
   setIsPasswordVisible,
 }) => {
@@ -104,6 +120,7 @@ export const ValidateInputField = ({
       }) => {
         return (
           <View style={styles().root}>
+            <Text style={styles().title}>{title}</Text>
             <View
               style={[
                 styles(type).container,
@@ -163,6 +180,7 @@ const styles = (type, width) =>
   StyleSheet.create({
     root: {
       width: '100%',
+      marginVertical: 5,
     },
     container: {
       backgroundColor: type === 'filled' ? colors.secondaryLight : colors.white,
@@ -174,9 +192,14 @@ const styles = (type, width) =>
       justifyContent: 'space-around',
       alignItems: 'center',
       paddingHorizontal: 10,
-      marginTop: 10,
+      marginTop: 5,
       marginBottom: 5,
       width: '100%',
+    },
+
+    title: {
+      fontSize: fonts.size.font16,
+      fontWeight: fonts.weight.bold,
     },
 
     input: {
